@@ -1,4 +1,4 @@
-from .params import Params
+from params import Params
 
 
 class HemsQ:
