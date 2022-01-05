@@ -22,9 +22,7 @@ def test():
 
     # set 関数のテスト
     sp.set_unit(50)
-    # TODO: unit の変更に伴う他の値の変化のテスト
     assert sp.unit == 50
-    # TODO: actual -> 計算用の値のテスト
     sp.set_actual_b_max(6000)
     assert sp.actual_b_max == 6000
     sp.set_actual_b_0(3000)

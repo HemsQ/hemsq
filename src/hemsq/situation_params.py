@@ -5,17 +5,13 @@ class SituationParams:
         """
         # 項目あたり電力量(W)
         self._unit = 100
-        # 実際の貯蓄可能容量 actual_b_max (W)と計算で使う貯蓄可能容量 b_max を区別
+        # 実際の貯蓄可能容量 (W)
         self._actual_b_max = 5000
-        self._b_max = int(self._actual_b_max/self._unit)
-        # 実際の初期蓄電量 actual_b_0 (W)と計算で使う初期蓄電量 b_0 を区別
+        # 実際の初期蓄電量 actual_b_0 (W)
         self._actual_b_0 = 4500
-        self._b_0 = int(self._actual_b_0/self._unit)
 
-        # 定格出力 (1時間あたりに貯められる量)
-        # 実際の蓄電池容量 actual_rated_capa (W)と計算で使う定格出力 rated_capa を区別
+        # 実際の定格出力 (W) (1時間あたりに貯められる量)
         self._actual_rated_capa = 2000
-        self._rated_capa = int(self._actual_rated_capa/self._unit)
 
         # 経費コストと環境コストの比率(ここでは1:1)
         self._cost_ratio = 1.0
@@ -38,22 +34,15 @@ class SituationParams:
 
     def set_unit(self, unit):
         self._unit = unit
-        # unit の変更による影響
-        self._b_max = int(self._actual_b_max/self._unit)
-        self._b_0 = int(self._actual_b_0/self._unit)
-        self._rated_capa = int(self._actual_rated_capa/self._unit)
     
     def set_actual_b_max(self, actual_b_max):
         self._actual_b_max = actual_b_max
-        self._b_max = int(self._actual_b_max/self._unit)
 
     def set_actual_b_0(self, actual_b_0):
         self._actual_b_0 = actual_b_0
-        self._b_0 = int(self._actual_b_0/self._unit)
 
     def set_actual_rated_capa(self, actual_rated_capa):
         self._actual_rated_capa = actual_rated_capa
-        self._rated_capa = int(self._actual_rated_capa/self._unit)
 
     def set_cost_ratio(self, cost_ratio):
         self._cost_ratio = cost_ratio
