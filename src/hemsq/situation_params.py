@@ -1,4 +1,4 @@
-class Params:
+class SituationParams:
     def __init__(self):
         """
         初期化関数.
