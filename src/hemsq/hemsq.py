@@ -1,4 +1,4 @@
-from params import Params
+from .situation_params import SituationParams
 
 
 class HemsQ:
@@ -7,7 +7,7 @@ class HemsQ:
         初期化関数.
         """
         # パラメタ
-        self._params = Params()
+        self._sp = SituationParams()
 
 
     def set_params(self):
