@@ -1,4 +1,4 @@
-from situation_params import SituationParams
+from .situation_params import SituationParams
 
 
 class HemsQ:
