@@ -33,7 +33,7 @@ class HemsQ:
         if initial_battery_amount:
             self._sp.set_actual_b_0(initial_battery_amount)
         if rated_output:
-            self._sp.set_actual_rated_capa(rated_amount)
+            self._sp.set_actual_rated_capa(rated_output)
         if cost_ratio:
             self._sp.set_cost_ratio(cost_ratio)
         if start_time:
@@ -51,7 +51,7 @@ class HemsQ:
 
     @property
     def situation_params(self):
-        return self._sp
+        return self._sp.all_params
 
     def set_client(self, client):
         """

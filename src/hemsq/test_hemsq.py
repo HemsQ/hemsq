@@ -5,7 +5,7 @@
 # 動かして動作確認
 
 from hemsq import HemsQ
-from hemsQ import SituationParams
+from hemsq import SituationParams
 
 def test():
     # 初期化テスト
