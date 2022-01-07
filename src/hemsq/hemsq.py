@@ -50,7 +50,7 @@ class HemsQ:
             self._sp.set_demand(demand_list)
 
     @property
-    def situation_params(self):
+    def params(self):
         return self._sp.all_params
 
     def set_client(self, client):
