@@ -1,4 +1,10 @@
-from situation_params import SituationParams
+# SituationParams のテスト
+# GitHub の仮のブランチに一旦アップロードしたあと、
+# Google Colab で
+# !pip install git+https://github.com/CanonMukai/hemsq-prototype.git@ブランチ
+# 動かして動作確認
+
+from hemsq import SituationParams
 
 
 def test():
@@ -46,5 +52,4 @@ def test():
     # TODO: client のテスト
 
 
-if __name__ == "__main__":
-    test()
+test()

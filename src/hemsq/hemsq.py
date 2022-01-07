@@ -10,11 +10,48 @@ class HemsQ:
         self._sp = SituationParams()
 
 
-    def set_params(self):
+    def set_params(self,
+            unit=None,
+            battery_capacity=None,
+            initial_battery_amount=None,
+            rated_output=None,
+            cost_ratio=None,
+            start_time=None,
+            step=None,
+            output_len=None,
+            reschedule_span=None,
+            weather_list=None,
+            demand_list=None,
+        ):
         """
         パラメータを設定する.
         """
-        pass
+        if unit:
+            self._sp.set_unit(unit)
+        if battery_capacity:
+            self._sp.set_actual_b_max(battery_capacity)
+        if initial_battery_amount:
+            self._sp.set_actual_b_0(initial_battery_amount)
+        if rated_output:
+            self._sp.set_actual_rated_capa(rated_amount)
+        if cost_ratio:
+            self._sp.set_cost_ratio(cost_ratio)
+        if start_time:
+            self._sp.set_start_time(start_time)
+        if step:
+            self._sp.set_step(step)
+        if output_len:
+            self._sp.set_output_len(output_len)
+        if reschedule_span:
+            self._sp.set_resche_span(reschedule_span)
+        if weather_list:
+            self._sp.set_tenki(weather_list)
+        if demand_list:
+            self._sp.set_demand(demand_list)
+
+    @property
+    def situation_params(self):
+        return self._sp
 
     def set_client(self, client):
         """

@@ -115,6 +115,23 @@ class SituationParams:
     @property
     def client(self):
         return self._client
+    
+    @property
+    def all_params(self):
+        return {
+            "unit": self._unit,
+            "battery_capacity": self._actual_b_max,
+            "initial_battery_amount": self._actual_b_0,
+            "rated_output": self._actual_rated_capa,
+            "cost_ratio": self._cost_ratio,
+            "start_time": self._start_time,
+            "step": self._step,
+            "output_len": self.output_len,
+            "reschedule_span": self._resche_span,
+            "weather_list": self._tenki,
+            "demand_list": self._demand,
+            "client": self._client,
+        }
 
     def reset_params(self):
         """
