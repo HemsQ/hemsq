@@ -35,7 +35,7 @@ def test():
     assert params["start_time"] == 1
     assert params["step"] == 8
     assert params["output_len"] == 12
-    assert params["reschedule_paramsan"] == 8
+    assert params["reschedule_span"] == 8
     assert params["weather_list"] == ["c" for i in range(24)]
     assert params["demand_list"] == [100 for i in range(24)]
 
