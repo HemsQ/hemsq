@@ -17,8 +17,13 @@ def test():
         unit=200,
         battery_capacity=6000,
         initial_battery_amount=5000,
+        b_in=0.96,
+        b_out=0.96,
+        eta=0.1,
+        conv_eff=0.9,
         rated_output=3000,
         cost_ratio=1.1,
+        c_env=0.5,
         start_time=1,
         step=8,
         output_len=12,
@@ -30,8 +35,13 @@ def test():
     assert params["unit"] == 200
     assert params["battery_capacity"] == 6000
     assert params["initial_battery_amount"] == 5000
+    assert params["b_in"] == 0.96
+    assert params["b_out"] == 0.96
+    assert params["eta"] == 0.1
+    assert params["conv_eff"] == 0.9
     assert params["rated_output"] == 3000
     assert params["cost_ratio"] == 1.1
+    assert params["c_env"] == 0.5
     assert params["start_time"] == 1
     assert params["step"] == 8
     assert params["output_len"] == 12

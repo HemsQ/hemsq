@@ -16,8 +16,13 @@ def test():
     assert isinstance(sp.unit, int)
     assert isinstance(sp.actual_b_max, int)
     assert isinstance(sp.actual_b_0, int)
+    assert isinstance(sp.b_in, float)
+    assert isinstance(sp.b_out, float)
+    assert isinstance(sp.eta, float)
+    assert isinstance(sp.conv_eff, float)
     assert isinstance(sp.actual_rated_capa, int)
     assert isinstance(sp.cost_ratio, float)
+    assert isinstance(sp.c_env, float)
     assert isinstance(sp.start_time, int)
     assert isinstance(sp.step, int)
     assert isinstance(sp.output_len, int)
@@ -33,10 +38,20 @@ def test():
     assert sp.actual_b_max == 6000
     sp.set_actual_b_0(3000)
     assert sp.actual_b_0 == 3000
+    sp.set_b_in(0.96)
+    assert sp.b_in == 0.96
+    sp.set_b_out(0.96)
+    assert sp.b_out == 0.96
+    sp.set_eta(0.1)
+    assert sp.eta == 0.1
+    sp.set_conv_eff(0.9)
+    assert sp.conv_eff == 0.9
     sp.set_actual_rated_capa(3000)
     assert sp.actual_rated_capa == 3000
     sp.set_cost_ratio(1.5)
     assert sp.cost_ratio == 1.5
+    sp.set_c_env(0.6)
+    assert sp.c_env == 0.6
     sp.set_start_time(12)
     assert sp.start_time == 12
     sp.set_step(6)
