@@ -136,7 +136,7 @@ class HemsQ:
                 q1[i] = 0
             #多項式(f:コスト項,g:制約項,h1:B(t)<=B_max,h2:0<=B(t))
             c = mqa.cost_term(sp.step, total, komoku, sp.cost_ratio,\
-                             sp.conv_eff, C_ele_t, C_sun_t, C_env, q1)
+                             sp.conv_eff, C_ele_t, C_sun_t, sp.c_env, q1)
             p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
                             sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
             ineq1, ineq2 = mqa.ineq(q1, q2, q3, ap.step, total, komoku,\
