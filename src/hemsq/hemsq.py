@@ -124,7 +124,7 @@ class HemsQ:
             D_t, Sun_t, C_ele_t, C_sun_t =\
                 rotateAll(resche_start, (resche_start + sp.step-1) % 24,\
                           D_all, Sun_all, C_ele_all, C_sun_all)                
-            komoku_grp = komokuGroup(D_t, Sun_t, rated_capa) #項目の数を決める
+            komoku_grp = komokuGroup(D_t, Sun_t, rated_capa, sp.step) #項目の数を決める
             komoku, total = newKomokuProduce(komoku_grp) #項目を作る
             gen = BinarySymbolGenerator()  # BinaryPoly の変数ジェネレータを宣言
             q1 = gen.array(total * sp.step)  # 決定変数xの Binary 配列を生成

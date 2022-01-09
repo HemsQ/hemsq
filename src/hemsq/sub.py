@@ -81,7 +81,7 @@ def makeInput(demand, tenki, normalize_rate, unit):
 
 
 #項目の各種類で必要な数が入ったリストを作る
-def komokuGroup(D, Sun, rated_capa):
+def komokuGroup(D, Sun, rated_capa, step):
     lst = [0]*6
     #太陽光(sun_sell,sun_use,sun_in)の数
     for i in range(1,4):
