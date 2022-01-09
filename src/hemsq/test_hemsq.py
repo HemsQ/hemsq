@@ -12,6 +12,7 @@ def test():
     hq = HemsQ()
     assert isinstance(hq, HemsQ)
     assert isinstance(hq._sp, SituationParams)
+    assert hq.results == []
 
     hq.set_params(
         unit=200,
