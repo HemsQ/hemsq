@@ -8,7 +8,8 @@ class HemsQ:
         """
         # パラメタ
         self._sp = SituationParams()
-
+        # 結果を格納するリスト
+        self._results = []
 
     def set_params(self,
             unit=None,
@@ -67,6 +68,10 @@ class HemsQ:
     @property
     def params(self):
         return self._sp.all_params
+
+    @property
+    def results(self):
+        return self._results
 
     def set_client(self, client):
         """
