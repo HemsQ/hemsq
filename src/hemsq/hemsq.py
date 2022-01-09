@@ -139,7 +139,7 @@ class HemsQ:
                              sp.conv_eff, C_ele_t, C_sun_t, sp.c_env, q1)
             p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
                             sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
-            ineq1, ineq2 = mqa.ineq(q1, q2, q3, ap.step, total, komoku,\
+            ineq1, ineq2 = mqa.ineq(q1, q2, q3, sp.step, total, komoku,\
                                     sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
             for w_p in np.arange(4.0, 2.5, -0.1): #制約項の重み
                 for w_ineq2 in np.arange(1.1, 1.6, 0.1): #0<=B(t)の重み
