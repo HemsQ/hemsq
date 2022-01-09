@@ -1,5 +1,5 @@
 from .situation_params import SituationParams
-
+from .amp.make_qubo_amp import *
 
 class HemsQ:
     def __init__(self):
