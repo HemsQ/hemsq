@@ -1,5 +1,17 @@
+import math
+
+from amplify import (
+    BinaryPoly,
+    BinaryQuadraticModel,
+    BinarySymbolGenerator,
+    sum_poly,
+    Solver,
+    SymbolGenerator,
+)
+
 from .situation_params import SituationParams
-from .amp.make_qubo_amp import *
+from .amp import make_qubo_amp as mqa
+from .sub import *
 
 class HemsQ:
     def __init__(self):
@@ -8,6 +20,8 @@ class HemsQ:
         """
         # パラメタ
         self._sp = SituationParams()
+        # マシンのクライアント
+        self._client = None
         # 結果を格納するリスト
         self._results = []
 
@@ -79,10 +93,92 @@ class HemsQ:
         Args:
           client: An object defined in amplify.client.
         """
-        pass
+        self._client = client
 
     def solve(self):
-        pass
+        sp = self._sp
+        
+        #制約の重み
+        w_cost = 1.0 #コスト項
+        w_d=1.0#需要と供給のバランス 
+        w_a=1.0 #項目は一つ割り当てる 
+        w_io=1.0 #蓄電池の入出力は同時にしない
+        w_s=1.0 #太陽光の収支を合わせる
+        normalize_rate = 0.01 #正規化何倍
+        sche_times = int(sp.output_len / sp.resche_span) #何回組み直すか
+        result_sche = [] #スケジュールを追加するリスト
+        D_all, Sun_all, C_ele_all, C_sun_all =\
+             makeInput(sp.demand, sp.tenki, normalize_rate, sp._unit) #24時間分のデータ
+        B_0 = int(sp.actual_b_0 / sp.unit)
+        B_max = int(sp.actual_b_max / sp.unit)
+        rated_capa = int(sp.actual_rated_capa / sp.unit)
+        y_n = math.floor(math.log2(B_max-1))+1 #不等式のスラック変数の数
+        for t in range(sche_times):
+            energy_lst = [] #パラメタ調整用(energy)
+            weight_lst = [] #パラメタ調整用(w_p,w_ineq1,w_ineq2）
+            all_sche = [] #パラメタ調整用(制約を破る・破らないに関わらず全てのスケジュールをここに入れる）
+            if t != 0:
+                B_0 = result_sche[t-1][-1][-1]#前のスケジュール作成の時の蓄電量    
+            resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
+            #入力（太陽光・需要・料金）について組み直し開始時間からstep時間分だけ用意する    
+            D_t, Sun_t, C_ele_t, C_sun_t =\
+                rotateAll(resche_start, (resche_start + sp.step-1) % 24,\
+                          D_all, Sun_all, C_ele_all, C_sun_all)                
+            komoku_grp = komokuGroup(D_t, Sun_t, rated_capa) #項目の数を決める
+            komoku, total = newKomokuProduce(komoku_grp) #項目を作る
+            gen = BinarySymbolGenerator()  # BinaryPoly の変数ジェネレータを宣言
+            q1 = gen.array(total * sp.step)  # 決定変数xの Binary 配列を生成
+            q2 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
+            q3 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
+            #使わない変数を固定
+            fix_lst = disuse(komoku_grp, B_0, B_max, D_t, sp.step, [])
+            for i in fix_lst:
+                q1[i] = 0
+            #多項式(f:コスト項,g:制約項,h1:B(t)<=B_max,h2:0<=B(t))
+            c = mqa.cost_term(sp.step, total, komoku, sp.cost_ratio,\
+                             sp.conv_eff, C_ele_t, C_sun_t, C_env, q1)
+            p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
+                            sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
+            ineq1, ineq2 = mqa.ineq(q1, q2, q3, ap.step, total, komoku,\
+                                    sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
+            for w_p in np.arange(4.0, 2.5, -0.1): #制約項の重み
+                for w_ineq2 in np.arange(1.1, 1.6, 0.1): #0<=B(t)の重み
+                    for w_ineq1 in np.arange(1.1, 1.6, 0.1): #B(t)<=B_max
+                        #多項式を重みをかけて足し合わす
+                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1 + ineq2 * w_ineq2
+                        # ソルバの実行
+                        solver = Solver(self._client)
+                        result = solver.solve(Q)
+                        #結果の取得
+                        print("debug:")
+                        print(result)
+                        print(type(result))
+                        for solution in result:
+                            sample = solution.values
+                            break
+                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[0:len(q1)-len(fix_lst)])
+                        #一つの項目が割り当てられる時間は一枠・opt_result取得
+                        alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
+                        #組み直し時間までの結果
+                        schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0) 
+                        #破った制約を追加する
+                        broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
+                        #重みを追加
+                        weight_lst.append([w_p, w_ineq1, w_ineq2])        
+                        print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)                 
+                        if not broken_lst:
+                            result_sche.append([schedule[j][0: resche_span] for j in range(7)])  
+                            print('success! resche time :', resche_start)
+        #                     print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)                 
+                            break #満たす解があればfor文を抜ける
+                    if not broken_lst:
+                        break #満たす解があればfor文を抜ける
+                if not broken_lst:
+                    break #満たす解があればfor文を抜ける
+            if broken_lst:
+                print('not found time:', resche_start) #満たす解がないのであれば終了する
+                break                
+        print('Done!')
 
     def show_info(self):
         pass

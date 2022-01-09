@@ -7,6 +7,8 @@
 from hemsq import HemsQ
 from hemsq import SituationParams
 
+from amplify.client import FixstarsClient
+
 def test():
     # 初期化テスト
     hq = HemsQ()
@@ -55,5 +57,14 @@ def test():
     )
     params = hq.params
     assert params["cost_ratio"] == 1.0
+
+    client = FixstarsClient()
+    client.token = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    client.parameters.timeout = 1000 # タイムアウト1秒
+    client.parameters.outputs.num_outputs = 0
+    client.parameters.outputs.duplicate = True # エネルギー値が同一の解を重複して出力する
+    hq.set_client(client)
+
+    hq.solve()
 
 test()

@@ -41,8 +41,6 @@ class SituationParams:
         # 需要パターン
         self._demand = [207,177,147,157,157,167,228,330,381,391,351,311,341,341,311,310,320,331,372,542,549,509,438,318]
 
-        self._client = None
-
     def set_unit(self, unit):
         self._unit = unit
     
@@ -90,9 +88,6 @@ class SituationParams:
 
     def set_demand(self, demand):
         self._demand = demand
-
-    def set_client(self, client):
-        self._client = client
 
     @property
     def unit(self):
@@ -157,10 +152,6 @@ class SituationParams:
     @property
     def demand(self):
         return self._demand
-
-    @property
-    def client(self):
-        return self._client
     
     @property
     def all_params(self):
@@ -181,13 +172,10 @@ class SituationParams:
             "reschedule_span": self._resche_span,
             "weather_list": self._tenki,
             "demand_list": self._demand,
-            "client": self._client,
         }
 
     def reset_params(self):
         """
-        ユーザーが指定した client を除くパラメタをデフォルト値に戻す
+        パラメタをデフォルト値に戻す
         """
-        client = self._client
         self.__init__()
-        self.set_client(client)

@@ -29,7 +29,6 @@ def test():
     assert isinstance(sp.resche_span, int)
     assert isinstance(sp.tenki, list)
     assert isinstance(sp.demand, list)
-    assert sp.client == None
 
     # set 関数のテスト
     sp.set_unit(50)
@@ -64,7 +63,6 @@ def test():
     assert sp.tenki == ["c" for i in range(8)]
     sp.set_demand([100 for i in range(24)])
     assert sp.demand == [100 for i in range(24)]
-    # TODO: client のテスト
 
 
 test()
