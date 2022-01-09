@@ -1,5 +1,7 @@
 import itertools
 
+import numpy as np
+
 
 #データの正規化
 def normalize(data, normalize_rate):
