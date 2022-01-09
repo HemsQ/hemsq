@@ -64,7 +64,7 @@ def makeInput(demand, tenki, normalize_rate, unit):
     #リストを四捨五入してカードにする
     def rounding(lst):
         #unitで割って
-        lst1 = list(normalize(lst, 1/unit))
+        lst1 = list(normalize(lst, 1 / unit))
         #小数点を四捨五入
         lst2 = [int(my_round(lst1[i], 0)) for i in range(len(lst1))]
         return lst2
@@ -72,12 +72,12 @@ def makeInput(demand, tenki, normalize_rate, unit):
     #丸めてunitでわる
     demand = rounding(demand)
     sun = rounding(sun)
-    
-    C_ele = eleCost()
+    # もともと C_ele = eleCost() だったけど、このように変えた
+    C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 12, 12, 12, 12, 12, 12, 12]
     C_sun = [8]*24
-    C_ele = normalize(C_ele,normalize_rate*unit/1000)
-    C_sun = normalize(C_sun,normalize_rate*unit/1000)
-    return demand,sun,C_ele,C_sun
+    C_ele = normalize(C_ele, normalize_rate * unit / 1000)
+    C_sun = normalize(C_sun, normalize_rate * unit / 1000)
+    return demand, sun, C_ele, C_sun
 
 
 #項目の各種類で必要な数が入ったリストを作る
