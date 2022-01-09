@@ -1,9 +1,29 @@
+import itertools
+
 
 #データの正規化
 def normalize(data, normalize_rate):
     def f(x):
         return x*normalize_rate    
     return list(map(f,data))
+
+
+#三時間毎の天気予報を入れると太陽光の発電量を計算してくれて返す
+def Weather3hours(tenki, sun):
+    #発電量を曇りは1/3倍、雨雪は1/5倍でリストを返す
+    def Weather(weather, lst):
+        l = [0] * len(lst)
+        if weather != 's':#曇りor雨or雪
+            for i in range(len(lst)):            
+                if weather == 'c':
+                    l[i] = int(my_round(lst[i]/3))
+                else:
+                    l[i] = int(my_round(lst[i]/5))
+        else:
+            l = lst
+        return l
+    lst = [Weather(tenki[i], sun[i*3: (i+1)*3]) for i in range(len(tenki))]
+    return list(itertools.chain.from_iterable(lst))
 
 
 #四捨五入する関数
