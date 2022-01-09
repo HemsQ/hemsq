@@ -142,26 +142,6 @@ def disuse(komoku_grp, B_0, B_max, D, step, disuse_lst=[]):
     return disuse_lst
 
 
-#制約alloc(項目iが割り当てられるのは1枠まで)を判断
-def check_alloc(step, sample0, opt_result={}):
-    satisfied = True
-    for key, val in sample0.items():
-        if val == 1:
-            i = key // step            
-            #項目iが既に割り当てられているなら、制約破り
-            if i in opt_result:
-                satisfied = False
-            #まだ割り当てられていないならopt_result{ID:t}に追加
-            else:
-                t = key % step
-                opt_result[i] = t
-    #opt_resultが空なら
-    if not opt_result:
-        print('opt_resultが空')
-        satisfied = False
-    return satisfied, opt_result
-
-
 #スケジュールをまとめる
 def makeSchedule(opt_result, step, total, komoku, B_0):
     schedule = [0] * step
@@ -201,6 +181,67 @@ def makeSchedule(opt_result, step, total, komoku, B_0):
     return schedule
 
 
+#制約alloc(項目iが割り当てられるのは1枠まで)を判断
+def check_alloc(step, sample0, opt_result={}):
+    satisfied = True
+    for key, val in sample0.items():
+        if val == 1:
+            i = key // step            
+            #項目iが既に割り当てられているなら、制約破り
+            if i in opt_result:
+                satisfied = False
+            #まだ割り当てられていないならopt_result{ID:t}に追加
+            else:
+                t = key % step
+                opt_result[i] = t
+    #opt_resultが空なら
+    if not opt_result:
+        print('opt_resultが空')
+        satisfied = False
+    return satisfied, opt_result
+
+
+#制約inout(蓄電池の入出力は同時にしない)を判断
+def check_inout(array):
+    satisfied = True 
+    for t in range(len(array)):
+        bat_in = array[t][1]+array[t][5] #太陽光貯める＋商用電源貯める
+        bat_out = array[t][3] #蓄電池使う
+        if bat_in * bat_out != 0:
+            satisfied = False
+    return satisfied
+
+
+#制約demand(需要のバランス)をチェック
+def demandBalancePerStep(array, D):
+    satisfied = True
+    for t in range(len(array)):
+        supply = array[t][0] + array[t][3] + array[t][4]
+        if supply != D[t]:
+            satisfied = False
+    return satisfied
+
+
+#制約sun(太陽光のバランス)をチェック、上とほぼ同じ
+def sunBalancePerStep(array, Sun):
+    satisfied = True
+    for t in range(len(array)):
+        if sum(array [t][:3]) != Sun[t]:
+            satisfied = False
+            break
+    return satisfied
+
+
+#各時間において蓄電量が蓄電池容量を超えていないかを確認する
+def batteryCapacity(array, B_max):
+    satisfied = True
+    for t in range(len(array)):
+        B = array[t][6]
+        if B < 0 or B > B_max:#蓄電量が負または容量を超えていたらだめ
+            satisfied = False
+    return satisfied
+
+
 #！パラメタ調整用！(1/3追加)
 #破った制約を追加したリストを返す
 def constraint(schedule, Sun, D, B_max, satisfied):  
@@ -210,10 +251,10 @@ def constraint(schedule, Sun, D, B_max, satisfied):
         broken_lst.append('alloc')
     if not check_inout(schedule): 
         broken_lst.append('inout')
-    if not demandBalancePerStep(schedule,D):
+    if not demandBalancePerStep(schedule, D):
         broken_lst.append('demand')
-    if not sunBalancePerStep(schedule,Sun):
+    if not sunBalancePerStep(schedule, Sun):
         broken_lst.append('sun')
-    if not batteryCapacity(schedule,B_max):
+    if not batteryCapacity(schedule, B_max):
         broken_lst.append('battery')
     return broken_lst
