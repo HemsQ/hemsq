@@ -5,16 +5,27 @@ class SituationParams:
         """
         # 項目あたり電力量(W)
         self._unit = 100
+
         # 実際の貯蓄可能容量 (W)
         self._actual_b_max = 5000
         # 実際の初期蓄電量 actual_b_0 (W)
         self._actual_b_0 = 4500
+        # 変換効率
+        self._b_in = 0.95
+        self._b_out = 0.95
+        # 放電率
+        self._eta = 0.05
+
+        # 変換効率
+        self._conv_eff = 1.0
 
         # 実際の定格出力 (W) (1時間あたりに貯められる量)
         self._actual_rated_capa = 2000
 
         # 経費コストと環境コストの比率(ここでは1:1)
         self._cost_ratio = 1.0
+        # 環境コスト
+        self._c_env = 0.5
 
         # 何時からのスケジュールを作るか
         self._start_time = 0
@@ -41,11 +52,26 @@ class SituationParams:
     def set_actual_b_0(self, actual_b_0):
         self._actual_b_0 = actual_b_0
 
+    def set_b_in(self, b_in):
+        self._b_in = b_in
+
+    def set_b_out(self, b_out):
+        self._b_out = b_out
+
+    def set_eta(self, eta):
+        self._eta = eta
+
+    def set_conv_eff(self, conv_eff):
+        self._conv_eff = conv_eff
+
     def set_actual_rated_capa(self, actual_rated_capa):
         self._actual_rated_capa = actual_rated_capa
 
     def set_cost_ratio(self, cost_ratio):
         self._cost_ratio = cost_ratio
+
+    def set_c_env(self, c_env):
+        self._c_env = c_env
 
     def set_start_time(self, start_time):
         self._start_time = start_time
@@ -81,12 +107,32 @@ class SituationParams:
         return self._actual_b_0
 
     @property
+    def b_in(self):
+        return self._b_in
+
+    @property
+    def b_out(self):
+        return self._b_out
+
+    @property
+    def eta(self):
+        return self._eta
+
+    @property
+    def conv_eff(self):
+        return self._conv_eff
+
+    @property
     def actual_rated_capa(self):
         return self._actual_rated_capa
 
     @property
     def cost_ratio(self):
         return self._cost_ratio
+
+    @property
+    def c_env(self):
+        return self._c_env
 
     @property
     def start_time(self):
@@ -122,8 +168,13 @@ class SituationParams:
             "unit": self._unit,
             "battery_capacity": self._actual_b_max,
             "initial_battery_amount": self._actual_b_0,
+            "b_in": self._b_in,
+            "b_out": self._b_out,
+            "eta": self._eta,
+            "conv_eff": self.conv_eff,
             "rated_output": self._actual_rated_capa,
             "cost_ratio": self._cost_ratio,
+            "c_env": self._c_env,
             "start_time": self._start_time,
             "step": self._step,
             "output_len": self.output_len,

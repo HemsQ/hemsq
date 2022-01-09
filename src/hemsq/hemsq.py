@@ -14,8 +14,13 @@ class HemsQ:
             unit=None,
             battery_capacity=None,
             initial_battery_amount=None,
+            b_in=None,
+            b_out=None,
+            eta=None,
+            conv_eff=None,
             rated_output=None,
             cost_ratio=None,
+            c_env=None,
             start_time=None,
             step=None,
             output_len=None,
@@ -32,10 +37,20 @@ class HemsQ:
             self._sp.set_actual_b_max(battery_capacity)
         if initial_battery_amount:
             self._sp.set_actual_b_0(initial_battery_amount)
+        if b_in:
+            self._sp.set_b_in(b_in)
+        if b_out:
+            self._sp.set_b_out(b_out)
+        if eta:
+            self._sp.set_eta(eta)
+        if conv_eff:
+            self._sp.set_conv_eff(conv_eff)
         if rated_output:
             self._sp.set_actual_rated_capa(rated_output)
         if cost_ratio:
             self._sp.set_cost_ratio(cost_ratio)
+        if c_env:
+            self._sp.set_c_env(c_env)
         if start_time:
             self._sp.set_start_time(start_time)
         if step:
