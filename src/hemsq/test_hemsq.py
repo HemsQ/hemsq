@@ -1,4 +1,4 @@
-# SituationParams のテスト
+# HemsQ のテスト
 # GitHub の仮のブランチに一旦アップロードしたあと、
 # Google Colab で
 # !pip install git+https://github.com/CanonMukai/hemsq-prototype.git@ブランチ
@@ -16,6 +16,7 @@ def test():
     assert isinstance(hq._sp, SituationParams)
     assert hq.results == []
 
+    # SituationParameter の設定テスト
     hq.set_params(
         unit=200,
         battery_capacity=6000,
@@ -57,6 +58,26 @@ def test():
     )
     params = hq.params
     assert params["cost_ratio"] == 1.0
+
+    # SituationParameter のリセットテスト
+    hq.reset_params()
+    params = hq.params
+    assert params["unit"] == 100
+    assert params["battery_capacity"] == 5000
+    assert params["initial_battery_amount"] == 4500
+    assert params["b_in"] == 0.95
+    assert params["b_out"] == 0.95
+    assert params["eta"] == 0.05
+    assert params["conv_eff"] == 1.0
+    assert params["rated_output"] == 2000
+    assert params["cost_ratio"] == 1.0
+    assert params["c_env"] == 0.5
+    assert params["start_time"] == 0
+    assert params["step"] == 12
+    assert params["output_len"] == 24
+    assert params["reschedule_span"] == 6
+    assert params["weather_list"] == ["r" for i in range(24)]
+    assert params["demand_list"] == [207,177,147,157,157,167,228,330,381,391,351,311,341,341,311,310,320,331,372,542,549,509,438,318]
 
     client = FixstarsClient()
     client.token = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

@@ -77,6 +77,9 @@ class HemsQ:
         if demand_list:
             self._sp.set_demand(demand_list)
 
+    def reset_params(self):
+        self._sp.reset_params()
+
     @property
     def params(self):
         return self._sp.all_params
