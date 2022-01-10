@@ -323,7 +323,7 @@ def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
     print("CO2排出量", CO2, "kg")
 
 #棒グラフ
-def plotBar(start, schedule, Data, mode, unit, output_len):
+def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
     step_labels = [str((i+start)%24) for i in list(range(output_len))]    
     if mode == 1:
         data_name = "需要"
@@ -421,9 +421,9 @@ def plotBar_bat(start, schedule, mode, C_ele, normalize_rate, output_len):
 #グラフ4つ表示
 def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
     #太陽光の収支
-    plotBar(start, schedule, Sun, 0, unit, output_len)
+    plotBar(start, schedule, Sun, 0, unit, normalize_rate, output_len)
     #需要と供給
-    plotBar(start, schedule, D, 1, unit, output_len)
+    plotBar(start, schedule, D, 1, unit, normalize_rate, output_len)
     #商用電源料金と充電量
     plotBar_bat(start, schedule, 0, C_ele, normalize_rate, output_len)
     #商用電源料金と使用量
