@@ -3,12 +3,8 @@ import math
 
 import numpy as np
 from amplify import (
-    BinaryPoly,
-    BinaryQuadraticModel,
     BinarySymbolGenerator,
-    sum_poly,
     Solver,
-    SymbolGenerator,
 )
 
 from .situation_params import SituationParams
@@ -124,7 +120,7 @@ class HemsQ:
             resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
             #入力（太陽光・需要・料金）について組み直し開始時間からstep時間分だけ用意する    
             D_t, Sun_t, C_ele_t, C_sun_t =\
-                rotateAll(resche_start, (resche_start + sp.step-1) % 24,\
+                rotateAll(resche_start%24, (resche_start + sp.step-1) % 24,\
                           D_all, Sun_all, C_ele_all, C_sun_all)                
             komoku_grp = komokuGroup(D_t, Sun_t, rated_capa, sp.step) #項目の数を決める
             komoku, total = newKomokuProduce(komoku_grp) #項目を作る
