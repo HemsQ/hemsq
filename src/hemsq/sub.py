@@ -460,31 +460,54 @@ def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
 
 
 #予測モデル型の場合の出力
-def output(schedule, start, D_all, Sun_all, C_ele_all, C_sun_all,\
-          unit, normalize_rate, output_len):
+def output(opr, schedule):
+    r = opr
     #outputしたい時間分のデータ
     D_op, Sun_op, C_ele_op, C_sun_op =\
-        rotateAll(start, start+output_len-1, D_all, Sun_all,\
-                  C_ele_all, C_sun_all)        
+        rotateAll(
+            r.sp.start_time,
+            r.sp.start_time + r.sp.output_len - 1,
+            r.D_all,
+            r.Sun_all,
+            r.C_ele_all,
+            r.C_sun_all)
     #値段表示
-    costPrint(schedule, normalize_rate, C_ele_op, C_sun_op,unit, output_len)
+    costPrint(
+        schedule,
+        r.normalize_rate,
+        C_ele_op,
+        C_sun_op,
+        r.sp.unit,
+        r.sp.output_len)
     #表表示
-    make2Table(schedule, start, D_op, Sun_op, C_ele_op, unit, normalize_rate,\
-               output_len)
+    make2Table(
+        schedule,
+        r.sp.start_time,
+        D_op,
+        Sun_op,
+        C_ele_op,
+        r.sp.unit,
+        r.normalize_rate,
+        r.sp.output_len)
     #棒グラフ表示
-    makeBar(schedule, start, D_op, Sun_op, C_ele_op, unit, normalize_rate,\
-            output_len)
+    makeBar(
+        schedule,
+        r.sp.start_time,
+        D_op,
+        Sun_op,
+        C_ele_op,
+        r.sp.unit,
+        r.normalize_rate,
+        r.sp.output_len)
 
 
-def marge_sche(result_sche, sche_times, start_time, D_all, Sun_all, C_ele_all,\
-               C_sun_all, unit, normalize_rate, output_len):
+def marge_sche(opr):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
-        a = [result_sche[i][k] for i in range(sche_times)]
+        a = [opr.result_sche[i][k] for i in range(opr.sche_times)]
         b = []
-        for i in range(sche_times):
+        for i in range(opr.sche_times):
             b += a[i]
         output_sche.append(b)
-    output(output_sche, start_time, D_all, Sun_all, C_ele_all, C_sun_all,\
-           unit, normalize_rate, output_len)
+    output(opr, output_sche)

@@ -9,6 +9,7 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
+from .opt_params_and_result import OptParamsAndResult
 from .sub import *
 
 class HemsQ:
@@ -20,8 +21,8 @@ class HemsQ:
         self._sp = SituationParams()
         # マシンのクライアント
         self._client = None
-        # 結果を格納するリスト
-        self._results = []
+        # 結果とそのときのパラメタを格納する OptParamsAndResult のリスト
+        self._oprs = []
 
     def set_params(self,
             unit=None,
@@ -181,23 +182,19 @@ class HemsQ:
                 break
         print('Done!')
 
-        # 結果の保存
-        self._results.append({
-            "params": copy.copy(sp),
-            "client": self._client,
-            "w_const": w_cost,
-            "w_d": w_d,
-            "w_a": w_a,
-            "w_io": w_io,
-            "w_s": w_s,
-            "normalize_rate": normalize_rate,
-            "sche_times": sche_times,
-            "D_all": D_all,
-            "Sun_all": Sun_all,
-            "C_ele_all": C_ele_all,
-            "C_sun_all": C_sun_all,
-            "result_sche": result_sche,
-        })
+        # 結果とパラメタ OptParamsAndResult の保存
+        self._oprs.append(
+            OptParamsAndResult(
+                copy.copy(sp),
+                copy.copy(self._client),
+                normalize_rate,
+                sche_times,
+                D_all,
+                Sun_all,
+                C_ele_all,
+                C_sun_all,
+                result_sche,
+            ))
 
     def show_info(self):
         pass
@@ -220,7 +217,5 @@ class HemsQ:
         self.show_solar_balance()
         self.show_supply_and_demand()
         self.show_money_graph()
-        r = self._results[-1]
-        marge_sche(r["result_sche"], r["sche_times"], r["params"].start_time,\
-                   r["D_all"], r["Sun_all"], r["C_ele_all"], r["C_sun_all"],\
-                   r["params"].unit, r["normalize_rate"], r["params"].output_len)
+        opr = self._oprs[-1]
+        marge_sche(opr)
