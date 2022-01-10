@@ -14,7 +14,7 @@ def test():
     hq = HemsQ()
     assert isinstance(hq, HemsQ)
     assert isinstance(hq._sp, SituationParams)
-    assert hq.results == []
+    assert hq.all_params_and_result == []
 
     # SituationParameter の設定テスト
     hq.set_params(
@@ -90,7 +90,6 @@ def test():
     hq.set_client(client)
 
     hq.solve()
-    assert len(hq._results) == 1
 
     hq.show_all()
 

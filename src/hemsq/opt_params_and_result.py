@@ -1,7 +1,6 @@
 class OptParamsAndResult:
     def __init__(self,
             sp,
-            client,
             normalize_rate,
             sche_times,
             D_all,
@@ -11,7 +10,6 @@ class OptParamsAndResult:
             result_sche,
         ):
         self._sp = sp
-        self._client = client
         self._normalize_rate = normalize_rate
         self._sche_times = sche_times
         self._D_all = D_all
@@ -23,10 +21,6 @@ class OptParamsAndResult:
     @property
     def sp(self):
         return self._sp
-
-    @property
-    def client(self):
-        return self._client
 
     @property
     def normalize_rate(self):

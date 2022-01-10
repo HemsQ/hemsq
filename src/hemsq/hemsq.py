@@ -186,7 +186,6 @@ class HemsQ:
         self._oprs.append(
             OptParamsAndResult(
                 copy.copy(sp),
-                copy.copy(self._client),
                 normalize_rate,
                 sche_times,
                 D_all,
