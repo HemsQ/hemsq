@@ -1,3 +1,4 @@
+import copy
 import math
 
 import numpy as np
@@ -181,6 +182,24 @@ class HemsQ:
                 break                
         print('Done!')
 
+        # 結果の保存
+        self._results.append({
+            "params": copy.copy(sp),
+            "client": self._client,
+            "w_const": w_cost,
+            "w_d": w_d,
+            "w_a": w_a,
+            "w_io": w_io,
+            "w_s": w_s,
+            "normalize_rate": normalize_rate,
+            "sche_times": sche_times,
+            "D_all": D_all,
+            "Sun_all": Sun_all,
+            "C_ele_all": C_ele_all,
+            "C_sun_all": C_sun_all,
+            "result_sche": result_sche,
+        })
+
     def show_info(self):
         pass
 
@@ -202,3 +221,7 @@ class HemsQ:
         self.show_solar_balance()
         self.show_supply_and_demand()
         self.show_money_graph()
+        r = self._results[-1]
+        marge_sche(r["result_sche"], r["sche_times"], r["params"].start_time,\
+                   r["D_all"], r["Sun_all"], r["C_ele_all"], r["C_sun_all"],\
+                   r["params"].unit, r["normalize_rate"], r["params"].output_len)

@@ -1,6 +1,9 @@
 import itertools
 
 import numpy as np
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Hiragino Sans GB'
+import pandas as pd
 
 
 #データの正規化
@@ -258,3 +261,201 @@ def constraint(schedule, Sun, D, B_max, satisfied):
     if not batteryCapacity(schedule, B_max):
         broken_lst.append('battery')
     return broken_lst
+
+
+#項目の電力単位にする
+def unitDouble(schedule, normalize_rate, unit):
+    # ここでで定義されていた normalize() は消した
+    for i in range(len(schedule)):
+        schedule_ = [normalize(schedule[i], unit) for i in range(len(schedule))]
+    return schedule_
+
+
+#表を作る
+def makeTable(start, data, labels, mode, output_len):
+    if mode == 0:
+        loc = 'lower center'
+        data_name = 'input'
+    else:
+        loc = 'upper center'
+        data_name = 'output'
+    step_labels = [str((i+start)%24)+':00' for i in list(range(output_len))]  
+    fig = plt.figure(dpi=200)    
+    ax1 = fig.add_subplot(2, 1, 1)
+    df0 = pd.DataFrame(data, index=labels, columns=step_labels)
+    ax1.axis('off')
+    ax1.table(cellText=df0.values, colLabels=df0.columns,\
+             rowLabels=df0.index, loc=loc, fontsize=15)
+    plt.show()
+
+    
+def make2Table(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
+    demand = list(map(int, normalize(D[:output_len], unit)))
+    sun = list(map(int, normalize(Sun[:output_len], unit)))
+    cost = list(map(int, normalize(C_ele[:output_len], 1000/normalize_rate/unit)))
+    label = ["需要(w)", "太陽光発電量(w)", "商用電源料金(円)"]
+    makeTable(start, [demand, sun, cost], label, 0, output_len)
+    label = ["太陽光使用(w)", "太陽光充電(w)", "太陽光売電(w)",\
+             "蓄電池使用(w)", "商用電源使用(w)", "商用電源充電(w)",\
+             "蓄電池残量(w)"]
+    makeTable(start,unitDouble(schedule, normalize_rate, unit), label, 1, output_len)  
+
+#最適解でかかった経費コストを計上してプリント出力する
+def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
+    array = np.array(schedule)
+    cost = 0 #コストの合計
+    e_cost = 0
+    for t in range(output_len):
+        #商用電源使用は4行目
+        from_ele = (array[4][t] + array[5][t]) * C_ele[t] / normalize_rate 
+        cost += from_ele
+        e_cost += from_ele
+        #太陽光売電は2行目
+        cost -= array[2][t] * C_sun[t] / normalize_rate
+    #コスト正なら
+    if cost >= 0:
+        print("かかったコストは", cost, "円")
+    #負なら
+    else:
+        print(-cost, "円の売上")
+    #CO2排出量（0.445kg/kWh)
+    CO2 = my_round(0.445 * e_cost*unit / 1000, 1)
+    print("CO2排出量", CO2, "kg")
+
+#棒グラフ
+def plotBar(start, schedule, Data, mode, unit, output_len):
+    step_labels = [str((i+start)%24) for i in list(range(output_len))]    
+    if mode == 1:
+        data_name = "需要"
+        barvalue_ = list(itemgetter(0, 3, 4)(schedule))
+        pop_lst = [1, 2, 5]
+        title = "需要と供給"
+    else:
+        data_name="太陽光発電量"        
+        barvalue_ = list(itemgetter(0, 1, 2)(schedule))
+        pop_lst = [3, 4, 5] 
+        title = "太陽光の収支"
+    how_labels = [data_name, "太陽光使用", "太陽光充電", "太陽光売電",\
+                  "蓄電池使用", "商用電源使用", "商用電源充電"]
+    color = ['gray', 'orangered', 'deepskyblue', 'limegreen']
+    for i in sorted(pop_lst, reverse=True):
+        how_labels.pop(i+1)
+    barvalue = unitDouble(barvalue_, normalize_rate, unit)      
+    data=list(map(int, normalize(Data, unit)))
+    df0 = pd.DataFrame(barvalue, index=how_labels[1:])
+    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))]\
+                     for j in range(output_len)][k]) for k in range(output_len)])
+    fig, ax = plt.subplots(figsize=(6, 4.8), dpi=150)
+    ax.bar(step_labels, data, width=-0.3, align='edge', color=color[0])        
+    for i in range(len(df0)):
+        ax.bar(step_labels, df0.iloc[i], width=0.3,\
+               align='edge', bottom=df0.iloc[:i].sum(), color=color[i+1])
+    #凡例
+    ax.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=18)
+    #x軸
+    ax.set_xlabel('時間(時)', fontsize=18)
+    ax.set_xticks([i*3 for i in range(8)])    
+    ax.tick_params(axis='x', labelsize=5)
+    #y軸
+    ax.set_ylabel('電力量(W)', fontsize=18)    
+    ax.set_ylim(0, ymax + 10)
+    ax.tick_params(axis='y', labelsize =15)
+    #タイトル
+    ax.set_title(title, fontsize=20)
+    plt.show()
+
+
+def plotBar_bat(start, schedule, mode, C_ele, normalize_rate, output_len):
+    step_labels = [str((i+start)%24) for i in list(range(output_len+1))] 
+    #充電のグラフ
+    if mode==0:       
+        data_name = "充電&料金"           
+        barvalue_ = list(itemgetter(1, 5)(schedule))
+        title = "商用電源料金の推移と充電"
+        how_labels = [data_name, "太陽光充電", "商用電源充電", "商用電源料金"]
+    #使用のグラフ
+    else:
+        data_name = "使用&料金"           
+        barvalue_ = list(itemgetter(0, 3, 4)(schedule))
+        title = "商用電源料金の推移と電力使用"
+        how_labels = [data_name, "太陽光使用", "商用電源使用", "蓄電池使用", "商用電源料金"]
+    barvalue = unitDouble(barvalue_, normalize_rate, unit) 
+    color = ['orange', 'deepskyblue', 'limegreen']
+    #時間ごとの充電・使用量の最大値を求めておきy軸の上限を定めておく
+    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))] \
+                     for j in range(output_len)][k]) for k in range(output_len)])
+    c_ele = normalize(C_ele, 1/normalize_rate)
+    df0 = pd.DataFrame(barvalue, index=how_labels[1: len(how_labels)-1])
+    #ax1:使用・充電の棒グラフ
+    fig, ax1 = plt.subplots(figsize=(6, 4.8), dpi=150)
+    for i in range(len(df0)):
+        ax1.bar(step_labels[:-1], df0.iloc[i], width=0.3, align='edge',
+                bottom=df0.iloc[:i].sum(), label=how_labels[1+i], color=color[i])
+    #凡例
+    ax1.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=18)
+    #タイトル
+    ax1.set_title(title, fontsize=20)
+    ax1.set_ylim(0, ymax + 10)
+    hans1, labs1 = ax1.get_legend_handles_labels()    
+    #x軸
+    ax1.set_xlabel('時間(時)', fontsize=18)
+    ax1.tick_params(axis='x', labelsize=15)
+    #y軸
+    ax1.set_ylabel('電力量(W)', fontsize=18)    
+    ax1.tick_params(axis='y', labelsize=15)
+    #ax2:商用電源の折れ線グラフ
+    ax2 = ax1.twinx()
+    ax2.plot(step_labels[:-1], c_ele, color='r', alpha=1, label=how_labels[len(how_labels)-1])
+    ax2.set_ylabel('料金(円)', fontsize=18)    
+    ax2.tick_params(axis='x', labelsize=15)
+    ax2.tick_params(axis='y', labelsize=15)
+    y_min, y_max = ax2.get_ylim()
+    ax2.set_ylim(y_min, y_max)
+    #凡例
+    hans2, labs2 = ax2.get_legend_handles_labels()
+    ax1.legend(hans1+hans2, labs1+labs2, loc="upper left", bbox_to_anchor=(1.2, 1.0), fontsize=15)
+    ax1.set_xticks([i*3 for i in range(8)])    
+    plt.show()
+
+
+#グラフ4つ表示
+def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
+    #太陽光の収支
+    plotBar(start, schedule, Sun, 0, unit, output_len)
+    #需要と供給
+    plotBar(start, schedule, D, 1, unit, output_len)
+    #商用電源料金と充電量
+    plotBar_bat(start, schedule, 0, C_ele, normalize_rate, output_len)
+    #商用電源料金と使用量
+    plotBar_bat(start, schedule, 1, C_ele, normalize_rate, output_len)
+
+
+#予測モデル型の場合の出力
+def output(schedule, start, D_all, Sun_all, C_ele_all, C_sun_all,\
+          unit, normalize_rate, output_len):
+    #outputしたい時間分のデータ
+    D_op, Sun_op, C_ele_op, C_sun_op =\
+        rotateAll(start, (start+output_len-1)%24, D_all, Sun_all,\
+                  C_ele_all, C_sun_all)        
+    #値段表示
+    costPrint(schedule, normalize_rate, C_ele_op, C_sun_op,unit, output_len)
+    #表表示
+    make2Table(schedule, start, D_op, Sun_op, C_ele_op, unit, normalize_rate,\
+               output_len)
+    #棒グラフ表示
+    makeBar(schedule, start, D_op, Sun_op, C_ele_op, unit, normalize_rate,\
+            output_len)
+
+
+def marge_sche(result_sche, sche_times, start_time, D_all, Sun_all, C_ele_all,\
+               C_sun_all, unit, normalize_rate, output_len):
+    #時間ごとに組み直したスケジュールを24時間にまとめる
+    output_sche = []
+    for k in range(7):
+        a = [result_sche[i][k] for i in range(sche_times)]
+        b = []
+        for i in range(sche_times):
+            b += a[i]
+        output_sche.append(b)
+    output(output_sche, start_time, D_all, Sun_all, C_ele_all, C_sun_all,\
+           unit, normalize_rate, output_len)
