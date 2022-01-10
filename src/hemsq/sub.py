@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.rcParams['font.family'] = 'Hiragino Sans GB'
+plt.rcParams['font.family'] = 'MS Gothic'
 import pandas as pd
 
 
