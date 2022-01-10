@@ -438,7 +438,7 @@ def output(schedule, start, D_all, Sun_all, C_ele_all, C_sun_all,\
         rotateAll(start, (start+output_len-1)%24, D_all, Sun_all,\
                   C_ele_all, C_sun_all)        
     #値段表示
-    costPrint(schedule, normalize_rate, C_ele_op, C_sun_op,unit, output_len)
+    # costPrint(schedule, normalize_rate, C_ele_op, C_sun_op,unit, output_len)
     #表表示
     make2Table(schedule, start, D_op, Sun_op, C_ele_op, unit, normalize_rate,\
                output_len)
