@@ -76,7 +76,7 @@ def test():
     assert params["step"] == 12
     assert params["output_len"] == 24
     assert params["reschedule_span"] == 6
-    assert params["weather_list"] == ["r" for i in range(24)]
+    assert params["weather_list"] == ["r" for i in range(8)]
     assert params["demand_list"] == [207,177,147,157,157,167,228,330,381,391,351,311,341,341,311,310,320,331,372,542,549,509,438,318]
 
     client = FixstarsClient()
