@@ -28,6 +28,7 @@ def test():
         rated_output=3000,
         cost_ratio=1.1,
         c_env=0.5,
+        sell_price=9,
         start_time=1,
         step=8,
         output_len=12,
@@ -46,6 +47,7 @@ def test():
     assert params["rated_output"] == 3000
     assert params["cost_ratio"] == 1.1
     assert params["c_env"] == 0.5
+    assert params["sell_price"] == 9
     assert params["start_time"] == 1
     assert params["step"] == 8
     assert params["output_len"] == 12
@@ -72,6 +74,7 @@ def test():
     assert params["rated_output"] == 2000
     assert params["cost_ratio"] == 1.0
     assert params["c_env"] == 0.5
+    assert params["sell_price"] == 8
     assert params["start_time"] == 0
     assert params["step"] == 12
     assert params["output_len"] == 24

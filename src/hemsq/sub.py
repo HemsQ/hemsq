@@ -57,7 +57,7 @@ def rotateAll(start, end, D_all, Sun_all, C_ele_all, C_sun_all):
 
 
 #24時間分の入力データを作る
-def makeInput(demand, tenki, normalize_rate, unit):
+def makeInput(demand, tenki, normalize_rate, unit, sell_price):
 
     #1kWの太陽光パネル・快晴・9月
     sun = [0,0,0,0,0,0,0,100,300,500,600,700,700,700,600,500,400,200,0,0,0,0,0,0]    
@@ -79,7 +79,7 @@ def makeInput(demand, tenki, normalize_rate, unit):
     sun = rounding(sun)
     # もともと C_ele = eleCost() だったけど、このように変えた
     C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 26, 26, 26, 26, 26, 26, 26]
-    C_sun = [8]*24
+    C_sun = [sell_price] * 24
     C_ele = normalize(C_ele, normalize_rate * unit / 1000)
     C_sun = normalize(C_sun, normalize_rate * unit / 1000)
     return demand, sun, C_ele, C_sun

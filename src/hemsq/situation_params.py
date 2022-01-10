@@ -27,6 +27,9 @@ class SituationParams:
         # 環境コスト
         self._c_env = 0.5
 
+        # 太陽光の売電価格
+        self._sell_price = 8
+
         # 何時からのスケジュールを作るか
         self._start_time = 0
         # 何時間先まで見てスケジュール作るか
@@ -70,6 +73,9 @@ class SituationParams:
 
     def set_c_env(self, c_env):
         self._c_env = c_env
+
+    def set_sell_price(self, sell_price):
+        self._sell_price = sell_price
 
     def set_start_time(self, start_time):
         self._start_time = start_time
@@ -130,6 +136,10 @@ class SituationParams:
         return self._c_env
 
     @property
+    def sell_price(self):
+        return self._sell_price
+
+    @property
     def start_time(self):
         return self._start_time
 
@@ -166,6 +176,7 @@ class SituationParams:
             "rated_output": self._actual_rated_capa,
             "cost_ratio": self._cost_ratio,
             "c_env": self._c_env,
+            "sell_price": self._sell_price,
             "start_time": self._start_time,
             "step": self._step,
             "output_len": self.output_len,

@@ -34,6 +34,7 @@ class HemsQ:
             rated_output=None,
             cost_ratio=None,
             c_env=None,
+            sell_price=None,
             start_time=None,
             step=None,
             output_len=None,
@@ -64,6 +65,8 @@ class HemsQ:
             self._sp.set_cost_ratio(cost_ratio)
         if c_env:
             self._sp.set_c_env(c_env)
+        if sell_price:
+            self._sp.set_sell_price(sell_price)
         if start_time:
             self._sp.set_start_time(start_time)
         if step:
@@ -109,7 +112,7 @@ class HemsQ:
         sche_times = int(sp.output_len / sp.resche_span) #何回組み直すか
         result_sche = [] #スケジュールを追加するリスト
         D_all, Sun_all, C_ele_all, C_sun_all =\
-             makeInput(sp.demand, sp.tenki, normalize_rate, sp._unit) #24時間分のデータ
+             makeInput(sp.demand, sp.tenki, normalize_rate, sp._unit, sp._sell_price) #24時間分のデータ
         B_0 = int(sp.actual_b_0 / sp.unit)
         B_max = int(sp.actual_b_max / sp.unit)
         rated_capa = int(sp.actual_rated_capa / sp.unit)
