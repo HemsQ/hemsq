@@ -148,9 +148,6 @@ class HemsQ:
                         solver = Solver(self._client)
                         result = solver.solve(Q)
                         #結果の取得
-                        print("debug:")
-                        print(result)
-                        print(type(result))
                         for solution in result:
                             sample = solution.values
                             break
@@ -163,11 +160,11 @@ class HemsQ:
                         broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
                         #重みを追加
                         weight_lst.append([w_p, w_ineq1, w_ineq2])        
-                        print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)                 
+                        # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
                         if not broken_lst:
                             result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])  
-                            print('success! resche time :', resche_start)
-        #                     print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)                 
+                            # print('success! resche time :', resche_start)
+                            # print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)
                             break #満たす解があればfor文を抜ける
                     if not broken_lst:
                         break #満たす解があればfor文を抜ける
@@ -175,7 +172,7 @@ class HemsQ:
                     break #満たす解があればfor文を抜ける
             if broken_lst:
                 print('not found time:', resche_start) #満たす解がないのであれば終了する
-                break                
+                break
         print('Done!')
 
         # 結果の保存
