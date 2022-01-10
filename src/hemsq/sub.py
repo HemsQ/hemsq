@@ -351,9 +351,10 @@ def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
         ax.bar(step_labels, df0.iloc[i], width=0.3,\
                align='edge', bottom=df0.iloc[:i].sum(), color=color[i+1])
     #凡例
-    ax.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=18)
+    ax.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0),\
+              fontsize=18, prop={"family":"MS Gothic"})
     #x軸
-    ax.set_xlabel('時間(時)', fontsize=18)
+    ax.set_xlabel('時間(時)', fontsize=18, fontname="MS Gothic")
     ax.set_xticks([i*3 for i in range(8)])    
     ax.tick_params(axis='x', labelsize=5)
     #y軸
