@@ -89,8 +89,8 @@ class HemsQ:
         return self._sp.all_params
 
     @property
-    def results(self):
-        return self._results
+    def all_params_and_result(self):
+        return self._oprs
 
     def set_client(self, client):
         """
