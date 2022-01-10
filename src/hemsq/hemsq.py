@@ -126,9 +126,12 @@ class HemsQ:
                 B_0 = result_sche[t-1][-1][-1]#前のスケジュール作成の時の蓄電量    
             resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
             #入力（太陽光・需要・料金）について組み直し開始時間からstep時間分だけ用意する    
-            D_t, Sun_t, C_ele_t, C_sun_t =\
-                rotateAll(resche_start%24, (resche_start + sp.step-1) % 24,\
-                          D_all, Sun_all, C_ele_all, C_sun_all)                
+            start = resche_start % 24
+            end = (resche_start + sp.step-1) % 24
+            D_t = rotate(start, end, D_all)
+            Sun_t = rotate(start, end, Sun_all)
+            C_ele_t = rotate(start, end, C_ele_all)
+            C_sun_t = rotate(start, end, C_sun_all)
             komoku_grp = komokuGroup(D_t, Sun_t, rated_capa, sp.step) #項目の数を決める
             komoku, total = newKomokuProduce(komoku_grp) #項目を作る
             gen = BinarySymbolGenerator()  # BinaryPoly の変数ジェネレータを宣言

@@ -37,23 +37,17 @@ def my_round(val, digit=0):
     return (val * p * 2 + 1) // 2 / p
 
 
-def rotateAll(start, end, D_all, Sun_all, C_ele_all, C_sun_all):
-    #リストを途中から一周する関数
-    def rotate(start, end, lst):
-        l = len(lst)
-        nlst = [0] * l
-        for i in range(l):
-            if start + i < l:    
-                nlst[i]  = lst[start+i]
-            else:
-                nlst[i] = lst[start+i-l]        
-        nlst = nlst[:end+1-start]
-        return nlst    
-    D = rotate(start, end, D_all)
-    Sun = rotate(start, end, Sun_all)
-    C_ele = rotate(start, end, C_ele_all)
-    C_sun = rotate(start, end, C_sun_all)
-    return D, Sun, C_ele, C_sun
+#リストを途中から一周する関数
+def rotate(start, end, lst):
+    l = len(lst)
+    nlst = [0] * l
+    for i in range(l):
+        if start + i < l:    
+            nlst[i] = lst[start + i]
+        else:
+            nlst[i] = lst[start + i - l]        
+    nlst = nlst[:end + 1 - start]
+    return nlst
 
 
 #24時間分の入力データを作る
@@ -461,16 +455,13 @@ def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
 
 #予測モデル型の場合の出力
 def output(opr, schedule):
-    r = opr
+    start_time = opr.sp.start_time
+    end = opr.sp.start_time + opr.sp.output_len - 1
     #outputしたい時間分のデータ
-    D_op, Sun_op, C_ele_op, C_sun_op =\
-        rotateAll(
-            r.sp.start_time,
-            r.sp.start_time + r.sp.output_len - 1,
-            r.D_all,
-            r.Sun_all,
-            r.C_ele_all,
-            r.C_sun_all)
+    D_op = rotate(start_time, end, opr.D_all)
+    Sun_op = rotate(start_time, end, opr.Sun_all)
+    C_ele_op = rotate(start_time, end, opr.C_ele_all)
+    C_sun_op = rotate(start_time, end, opr.C_sun_all)
     #値段表示
     costPrint(
         schedule,
