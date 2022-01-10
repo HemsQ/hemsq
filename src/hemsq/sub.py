@@ -78,7 +78,7 @@ def makeInput(demand, tenki, normalize_rate, unit):
     demand = rounding(demand)
     sun = rounding(sun)
     # もともと C_ele = eleCost() だったけど、このように変えた
-    C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 12, 12, 12, 12, 12, 12, 12]
+    C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 26, 26, 26, 26, 26, 26, 26]
     C_sun = [8]*24
     C_ele = normalize(C_ele, normalize_rate * unit / 1000)
     C_sun = normalize(C_sun, normalize_rate * unit / 1000)
@@ -293,12 +293,22 @@ def make2Table(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len)
     demand = list(map(int, normalize(D[:output_len], unit)))
     sun = list(map(int, normalize(Sun[:output_len], unit)))
     cost = list(map(int, normalize(C_ele[:output_len], 1000/normalize_rate/unit)))
-    label = ["需要(w)", "太陽光発電量(w)", "商用電源料金(円)"]
+    label = [
+        "Demand (w)",
+        "Solar Power Generation (w)",
+        "Commercial Electricity Prices (yen)",
+    ]
     makeTable(start, [demand, sun, cost], label, 0, output_len)
-    label = ["太陽光使用(w)", "太陽光充電(w)", "太陽光売電(w)",\
-             "蓄電池使用(w)", "商用電源使用(w)", "商用電源充電(w)",\
-             "蓄電池残量(w)"]
-    makeTable(start,unitDouble(schedule, normalize_rate, unit), label, 1, output_len)  
+    label = [
+        "Use of Solar Power (w)",
+        "Charge of Solar Power (w)",
+        "Sales of Solar Power (w)",
+        "Use of Battery Electricity (w)",
+        "Use of Commercial Electricity (w)",
+        "Charge of Commercial Electricity (w)",
+        "Remaining amount of Battery (w)",
+    ]
+    makeTable(start, unitDouble(schedule, normalize_rate, unit), label, 1, output_len)  
 
 #最適解でかかった経費コストを計上してプリント出力する
 def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
@@ -314,29 +324,36 @@ def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
         cost -= array[2][t] * C_sun[t] / normalize_rate
     #コスト正なら
     if cost >= 0:
-        print("かかったコストは", cost, "円")
+        print("Cost:", cost, "(yen)")
     #負なら
     else:
-        print(-cost, "円の売上")
+        print("Sales: ", -cost, "(yen)")
     #CO2排出量（0.445kg/kWh)
     CO2 = my_round(0.445 * e_cost*unit / 1000, 1)
-    print("CO2排出量", CO2, "kg")
+    print("CO2 Emissions:", CO2, "kg")
 
 #棒グラフ
 def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
     step_labels = [str((i+start)%24) for i in list(range(output_len))]    
     if mode == 1:
-        data_name = "需要"
+        data_name = "Demand"
         barvalue_ = list(itemgetter(0, 3, 4)(schedule))
         pop_lst = [1, 2, 5]
-        title = "需要と供給"
+        title = "Demand and Supply"
     else:
-        data_name="太陽光発電量"        
+        data_name="Solar Power Generation"        
         barvalue_ = list(itemgetter(0, 1, 2)(schedule))
         pop_lst = [3, 4, 5] 
-        title = "太陽光の収支"
-    how_labels = [data_name, "太陽光使用", "太陽光充電", "太陽光売電",\
-                  "蓄電池使用", "商用電源使用", "商用電源充電"]
+        title = "Balance of Solar Power"
+    how_labels = [
+        data_name,
+        "Use of Solar Power",
+        "Charge of Solar Power",
+        "Sales of Solar Power",
+        "Use of Battery Electricity",
+        "Use of Commercial Electricity",
+        "Charge of Commercial Electricity"
+    ]
     color = ['gray', 'orangered', 'deepskyblue', 'limegreen']
     for i in sorted(pop_lst, reverse=True):
         how_labels.pop(i+1)
@@ -352,13 +369,13 @@ def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
                align='edge', bottom=df0.iloc[:i].sum(), color=color[i+1])
     #凡例
     ax.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0),\
-              fontsize=18, prop={"family":"MS Gothic"})
+              fontsize=18)
     #x軸
-    ax.set_xlabel('時間(時)', fontsize=18, fontname="MS Gothic")
+    ax.set_xlabel('Time', fontsize=18)
     ax.set_xticks([i*3 for i in range(8)])    
     ax.tick_params(axis='x', labelsize=5)
     #y軸
-    ax.set_ylabel('電力量(W)', fontsize=18)    
+    ax.set_ylabel('Electricity (W)', fontsize=18)    
     ax.set_ylim(0, ymax + 10)
     ax.tick_params(axis='y', labelsize =15)
     #タイトル
@@ -370,16 +387,27 @@ def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
     step_labels = [str((i+start)%24) for i in list(range(output_len+1))] 
     #充電のグラフ
     if mode==0:       
-        data_name = "充電&料金"           
+        data_name = "Charge and Prices"           
         barvalue_ = list(itemgetter(1, 5)(schedule))
-        title = "商用電源料金の推移と充電"
-        how_labels = [data_name, "太陽光充電", "商用電源充電", "商用電源料金"]
+        title = "Transition of Commercial Electricity and Charging"
+        how_labels = [
+            data_name,
+            "Charge of Solar Power",
+            "Charge of Commercial Electricity",
+            "Commercial Electricity Prices",
+        ]
     #使用のグラフ
     else:
-        data_name = "使用&料金"           
+        data_name = "Use and Prices"           
         barvalue_ = list(itemgetter(0, 3, 4)(schedule))
-        title = "商用電源料金の推移と電力使用"
-        how_labels = [data_name, "太陽光使用", "商用電源使用", "蓄電池使用", "商用電源料金"]
+        title = "Transition of Commercial Electricity and Use of Electricity"
+        how_labels = [
+            data_name,
+            "Use of Solar Power",
+            "Use of Commercial Electricity",
+            "Use of Battery Electricity",
+            "Commercial Electricity Prices",
+        ]
     barvalue = unitDouble(barvalue_, normalize_rate, unit) 
     color = ['orange', 'deepskyblue', 'limegreen']
     #時間ごとの充電・使用量の最大値を求めておきy軸の上限を定めておく
@@ -399,15 +427,15 @@ def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
     ax1.set_ylim(0, ymax + 10)
     hans1, labs1 = ax1.get_legend_handles_labels()    
     #x軸
-    ax1.set_xlabel('時間(時)', fontsize=18)
+    ax1.set_xlabel('Time', fontsize=18)
     ax1.tick_params(axis='x', labelsize=15)
     #y軸
-    ax1.set_ylabel('電力量(W)', fontsize=18)    
+    ax1.set_ylabel('Electricity (W)', fontsize=18)    
     ax1.tick_params(axis='y', labelsize=15)
     #ax2:商用電源の折れ線グラフ
     ax2 = ax1.twinx()
     ax2.plot(step_labels[:-1], c_ele, color='r', alpha=1, label=how_labels[len(how_labels)-1])
-    ax2.set_ylabel('料金(円)', fontsize=18)    
+    ax2.set_ylabel('Prices (yen)', fontsize=18)    
     ax2.tick_params(axis='x', labelsize=15)
     ax2.tick_params(axis='y', labelsize=15)
     y_min, y_max = ax2.get_ylim()
