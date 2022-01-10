@@ -365,7 +365,7 @@ def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
     plt.show()
 
 
-def plotBar_bat(start, schedule, mode, C_ele, normalize_rate, output_len):
+def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
     step_labels = [str((i+start)%24) for i in list(range(output_len+1))] 
     #充電のグラフ
     if mode==0:       
@@ -425,9 +425,9 @@ def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
     #需要と供給
     plotBar(start, schedule, D, 1, unit, normalize_rate, output_len)
     #商用電源料金と充電量
-    plotBar_bat(start, schedule, 0, C_ele, normalize_rate, output_len)
+    plotBar_bat(start, schedule, 0, C_ele, unit, normalize_rate, output_len)
     #商用電源料金と使用量
-    plotBar_bat(start, schedule, 1, C_ele, normalize_rate, output_len)
+    plotBar_bat(start, schedule, 1, C_ele, unit, normalize_rate, output_len)
 
 
 #予測モデル型の場合の出力
