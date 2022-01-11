@@ -234,3 +234,4 @@ class HemsQ:
         self.show_money_graph()
         opr = self._oprs[-1]
         output(opr)
+        show_graph()
