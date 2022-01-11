@@ -311,7 +311,7 @@ def costPrint(opr):
     e_cost = 0
     for t in range(opr.sp.output_len):
         #商用電源使用は4行目
-        from_ele = (array[4][t] + array[5][t]) * C_ele[t] / opr.normalize_rate 
+        from_ele = (array[4][t] + array[5][t]) * opr.C_ele_op[t] / opr.normalize_rate 
         cost += from_ele
         e_cost += from_ele
         #太陽光売電は2行目
