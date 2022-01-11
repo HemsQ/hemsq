@@ -441,6 +441,22 @@ def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
     plt.show()
 
 
+def basic_graph(figsize=(5, 4)):
+    fig, ax = plt.subplots(figsize=figsize)
+    # x軸
+    ax.set_xlabel('Time', fontsize=18)
+    ax.tick_params(axis='x', labelsize=15)
+    # y軸
+    ax.set_ylabel('Electricity (W)', fontsize=18)
+    ax.tick_params(axis='y', labelsize =15)
+    return fig, ax
+
+
+def show_graph():
+    fig, ax = basic_graph()
+    plt.show()
+
+
 #グラフ4つ表示
 def makeBar(opr):
     #太陽光の収支
