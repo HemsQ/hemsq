@@ -37,23 +37,17 @@ def my_round(val, digit=0):
     return (val * p * 2 + 1) // 2 / p
 
 
-def rotateAll(start, end, D_all, Sun_all, C_ele_all, C_sun_all):
-    #リストを途中から一周する関数
-    def rotate(start, end, lst):
-        l = len(lst)
-        nlst = [0] * l
-        for i in range(l):
-            if start + i < l:    
-                nlst[i]  = lst[start+i]
-            else:
-                nlst[i] = lst[start+i-l]        
-        nlst = nlst[:end+1-start]
-        return nlst    
-    D = rotate(start, end, D_all)
-    Sun = rotate(start, end, Sun_all)
-    C_ele = rotate(start, end, C_ele_all)
-    C_sun = rotate(start, end, C_sun_all)
-    return D, Sun, C_ele, C_sun
+#リストを途中から一周する関数
+def rotate(start, end, lst):
+    l = len(lst)
+    nlst = [0] * l
+    for i in range(l):
+        if start + i < l:    
+            nlst[i] = lst[start + i]
+        else:
+            nlst[i] = lst[start + i - l]        
+    nlst = nlst[:end + 1 - start]
+    return nlst
 
 
 #24時間分の入力データを作る
@@ -289,16 +283,16 @@ def makeTable(start, data, labels, mode, output_len):
     plt.show()
 
     
-def make2Table(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
-    demand = list(map(int, normalize(D[:output_len], unit)))
-    sun = list(map(int, normalize(Sun[:output_len], unit)))
-    cost = list(map(int, normalize(C_ele[:output_len], 1000/normalize_rate/unit)))
+def make2Table(opr):
+    demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
+    sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
+    cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
     label = [
         "Demand (w)",
         "Solar Power Generation (w)",
         "Commercial Electricity Prices (yen)",
     ]
-    makeTable(start, [demand, sun, cost], label, 0, output_len)
+    makeTable(opr.sp.start_time, [demand, sun, cost], label, 0, opr.sp.output_len)
     label = [
         "Use of Solar Power (w)",
         "Charge of Solar Power (w)",
@@ -308,20 +302,20 @@ def make2Table(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len)
         "Charge of Commercial Electricity (w)",
         "Remaining amount of Battery (w)",
     ]
-    makeTable(start, unitDouble(schedule, normalize_rate, unit), label, 1, output_len)  
+    makeTable(opr.sp.start_time, unitDouble(opr.output_sche, opr.normalize_rate, opr.sp.unit), label, 1, opr.sp.output_len)  
 
 #最適解でかかった経費コストを計上してプリント出力する
-def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
-    array = np.array(schedule)
+def costPrint(opr):
+    array = np.array(opr.output_sche)
     cost = 0 #コストの合計
     e_cost = 0
-    for t in range(output_len):
+    for t in range(opr.sp.output_len):
         #商用電源使用は4行目
-        from_ele = (array[4][t] + array[5][t]) * C_ele[t] / normalize_rate 
+        from_ele = (array[4][t] + array[5][t]) * opr.C_ele_op[t] / opr.normalize_rate 
         cost += from_ele
         e_cost += from_ele
         #太陽光売電は2行目
-        cost -= array[2][t] * C_sun[t] / normalize_rate
+        cost -= array[2][t] * opr.C_sun_op[t] / opr.normalize_rate
     #コスト正なら
     if cost >= 0:
         print("Cost:", cost, "(yen)")
@@ -329,7 +323,7 @@ def costPrint(schedule, normalize_rate, C_ele, C_sun, unit, output_len):
     else:
         print("Sales: ", -cost, "(yen)")
     #CO2排出量（0.445kg/kWh)
-    CO2 = my_round(0.445 * e_cost*unit / 1000, 1)
+    CO2 = my_round(0.445 * e_cost * opr.sp.unit / 1000, 1)
     print("CO2 Emissions:", CO2, "kg")
 
 #棒グラフ
@@ -448,60 +442,28 @@ def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
 
 
 #グラフ4つ表示
-def makeBar(schedule, start, D, Sun, C_ele, unit, normalize_rate, output_len):
+def makeBar(opr):
     #太陽光の収支
-    plotBar(start, schedule, Sun, 0, unit, normalize_rate, output_len)
+    plotBar(opr.sp.start_time, opr.output_sche, opr.Sun_op, 0, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #需要と供給
-    plotBar(start, schedule, D, 1, unit, normalize_rate, output_len)
+    plotBar(opr.sp.start_time, opr.output_sche, opr.D_op, 1, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #商用電源料金と充電量
-    plotBar_bat(start, schedule, 0, C_ele, unit, normalize_rate, output_len)
+    plotBar_bat(opr.sp.start_time, opr.output_sche, 0, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #商用電源料金と使用量
-    plotBar_bat(start, schedule, 1, C_ele, unit, normalize_rate, output_len)
+    plotBar_bat(opr.sp.start_time, opr.output_sche, 1, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
 
 
 #予測モデル型の場合の出力
-def output(opr, schedule):
-    r = opr
-    #outputしたい時間分のデータ
-    D_op, Sun_op, C_ele_op, C_sun_op =\
-        rotateAll(
-            r.sp.start_time,
-            r.sp.start_time + r.sp.output_len - 1,
-            r.D_all,
-            r.Sun_all,
-            r.C_ele_all,
-            r.C_sun_all)
+def output(opr):
     #値段表示
-    costPrint(
-        schedule,
-        r.normalize_rate,
-        C_ele_op,
-        C_sun_op,
-        r.sp.unit,
-        r.sp.output_len)
+    costPrint(opr)
     #表表示
-    make2Table(
-        schedule,
-        r.sp.start_time,
-        D_op,
-        Sun_op,
-        C_ele_op,
-        r.sp.unit,
-        r.normalize_rate,
-        r.sp.output_len)
+    make2Table(opr)
     #棒グラフ表示
-    makeBar(
-        schedule,
-        r.sp.start_time,
-        D_op,
-        Sun_op,
-        C_ele_op,
-        r.sp.unit,
-        r.normalize_rate,
-        r.sp.output_len)
+    makeBar(opr)
 
 
-def marge_sche(opr):
+def merge_sche(opr):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
@@ -510,4 +472,5 @@ def marge_sche(opr):
         for i in range(opr.sche_times):
             b += a[i]
         output_sche.append(b)
-    output(opr, output_sche)
+    opr.set_output_sche(output_sche)
+    return output_sche
