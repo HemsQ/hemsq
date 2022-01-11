@@ -444,13 +444,13 @@ def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
 #グラフ4つ表示
 def makeBar(opr):
     #太陽光の収支
-    plotBar(opr.sp.start, opr.output_sche, opr.Sun_op, 0, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
+    plotBar(opr.sp.start_time, opr.output_sche, opr.Sun_op, 0, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #需要と供給
-    plotBar(opr.sp.start, opr.output_sche, opr.D_op, 1, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
+    plotBar(opr.sp.start_time, opr.output_sche, opr.D_op, 1, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #商用電源料金と充電量
-    plotBar_bat(opr.sp.start, opr.output_sche, 0, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
+    plotBar_bat(opr.sp.start_time, opr.output_sche, 0, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
     #商用電源料金と使用量
-    plotBar_bat(opr.sp.start, opr.output_sche, 1, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
+    plotBar_bat(opr.sp.start_time, opr.output_sche, 1, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
 
 
 #予測モデル型の場合の出力
