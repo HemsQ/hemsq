@@ -49,6 +49,18 @@ class OptParamsAndResult:
     def set_C_sun_all(self, C_sun_all):
         self._C_sun_all = C_sun_all
 
+    def set_D_op(self, D_op):
+        self._D_op = D_op
+
+    def set_Sun_op(self, Sun_op):
+        self._Sun_op = Sun_op
+
+    def set_C_ele_op(self, C_ele_op):
+        self._C_ele_op = C_ele_op
+
+    def set_C_sun_op(self, C_sun_op):
+        self._C_sun_op = C_sun_op
+
     def set_result_sche(self, result_sche):
         self._result_sche = result_sche
 
@@ -82,6 +94,22 @@ class OptParamsAndResult:
     @property
     def C_sun_all(self):
         return self._C_sun_all
+
+    @property
+    def D_op(self):
+        return self._D_op
+
+    @property
+    def Sun_op(self):
+        return self._Sun_op
+
+    @property
+    def C_ele_op(self):
+        return self._C_ele_op
+
+    @property
+    def C_sun_op(self):
+        return self._C_sun_op
 
     @property
     def result_sche(self):
