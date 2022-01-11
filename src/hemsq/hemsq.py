@@ -105,7 +105,7 @@ class HemsQ:
         
         #制約の重み
         w_cost = 1.0 #コスト項
-        w_d=1.0#需要と供給のバランス 
+        w_d=1.0 #需要と供給のバランス
         w_a=1.0 #項目は一つ割り当てる 
         w_io=1.0 #蓄電池の入出力は同時にしない
         w_s=1.0 #太陽光の収支を合わせる
@@ -114,6 +114,14 @@ class HemsQ:
         result_sche = [] #スケジュールを追加するリスト
         D_all, Sun_all, C_ele_all, C_sun_all =\
              makeInput(sp.demand, sp.tenki, normalize_rate, sp._unit, sp._sell_price) #24時間分のデータ
+        # 出力するデータの作成
+        start = sp.start_time
+        end = sp.start_time + sp.output_len - 1
+        D_op = rotate(start, end, D_all)
+        Sun_op = rotate(start, end, Sun_all)
+        C_ele_op = rotate(start, end, C_ele_all)
+        C_sun_op = rotate(start, end, C_sun_all)
+
         B_0 = int(sp.actual_b_0 / sp.unit)
         B_max = int(sp.actual_b_max / sp.unit)
         rated_capa = int(sp.actual_rated_capa / sp.unit)
@@ -186,17 +194,22 @@ class HemsQ:
         print('Done!')
 
         # 結果とパラメタ OptParamsAndResult の保存
-        self._oprs.append(
-            OptParamsAndResult(
-                copy.copy(sp),
-                normalize_rate,
-                sche_times,
-                D_all,
-                Sun_all,
-                C_ele_all,
-                C_sun_all,
-                result_sche,
-            ))
+        opr = OptParamsAndResult(
+            sp=copy.copy(sp),
+            normalize_rate=normalize_rate,
+            sche_times=sche_times,
+            D_all=D_all,
+            Sun_all=Sun_all,
+            C_ele_all=C_ele_all,
+            C_sun_all=C_sun_all,
+            D_op=D_op,
+            Sun_op=Sun_op,
+            C_ele_op=C_ele_op,
+            C_sun_op=C_sun_op,
+            result_sche=result_sche,
+        )
+        merge_sche(opr)
+        self._oprs.append(opr)
 
     def show_info(self):
         pass
@@ -220,4 +233,4 @@ class HemsQ:
         self.show_supply_and_demand()
         self.show_money_graph()
         opr = self._oprs[-1]
-        marge_sche(opr)
+        output(opr)
