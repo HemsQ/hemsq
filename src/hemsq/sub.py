@@ -50,33 +50,22 @@ def rotate(start, end, lst):
     return nlst
 
 
-#24時間分の入力データを作る
-def makeInput(demand, tenki, normalize_rate, unit, sell_price):
+# 天気による太陽光発電量の算出
+def make_sun_by_weather(solar_data, tenki):
+    # 通常の家の発電量
+    solar_at_home = normalize(solar_data, 2)
+    # 天気で発電量を調整する
+    solar_by_weather = Weather3hours(tenki, solar_at_home)
+    return solar_by_weather
 
-    #1kWの太陽光パネル・快晴・9月
-    sun = [0,0,0,0,0,0,0,100,300,500,600,700,700,700,600,500,400,200,0,0,0,0,0,0]    
-    #通常の家の発電量
-    sun = normalize(sun, 2)
-    #天気で発電量を調整する
-    sun = Weather3hours(tenki, sun)
-    
-    #リストを四捨五入してカードにする
-    def rounding(lst):
-        #unitで割って
-        lst1 = list(normalize(lst, 1 / unit))
-        #小数点を四捨五入
-        lst2 = [int(my_round(lst1[i], 0)) for i in range(len(lst1))]
-        return lst2
 
-    #丸めてunitでわる
-    demand = rounding(demand)
-    sun = rounding(sun)
-    # もともと C_ele = eleCost() だったけど、このように変えた
-    C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 26, 26, 26, 26, 26, 26, 26]
-    C_sun = [sell_price] * 24
-    C_ele = normalize(C_ele, normalize_rate * unit / 1000)
-    C_sun = normalize(C_sun, normalize_rate * unit / 1000)
-    return demand, sun, C_ele, C_sun
+# リストを四捨五入してカードにする
+def rounding(lst):
+    # unitで割って
+    lst1 = list(normalize(lst, 1 / unit))
+    # 小数点を四捨五入
+    lst2 = [int(my_round(lst1[i], 0)) for i in range(len(lst1))]
+    return lst2
 
 
 #項目の各種類で必要な数が入ったリストを作る

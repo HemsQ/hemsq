@@ -27,8 +27,13 @@ class SituationParams:
         # 環境コスト
         self._c_env = 0.5
 
+        # 商用電源の価格
+        self._ele_prices = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 26, 26, 26, 26, 26, 26, 26]
+
         # 太陽光の売電価格
         self._sell_price = 8
+        #1kWの太陽光パネル・快晴・9月
+        self._solar_data = [0,0,0,0,0,0,0,100,300,500,600,700,700,700,600,500,400,200,0,0,0,0,0,0]
 
         # 何時からのスケジュールを作るか
         self._start_time = 0
@@ -74,8 +79,14 @@ class SituationParams:
     def set_c_env(self, c_env):
         self._c_env = c_env
 
+    def set_ele_prices(self, ele_prices):
+        self._ele_prices = ele_prices
+
     def set_sell_price(self, sell_price):
         self._sell_price = sell_price
+
+    def set_solar_data(self, solar_data):
+        self._solar_data = solar_data
 
     def set_start_time(self, start_time):
         self._start_time = start_time
@@ -136,8 +147,16 @@ class SituationParams:
         return self._c_env
 
     @property
+    def ele_prices(self):
+        return self._ele_prices
+
+    @property
     def sell_price(self):
         return self._sell_price
+
+    @property
+    def solar_data(self):
+        return self._solar_data
 
     @property
     def start_time(self):
@@ -176,7 +195,9 @@ class SituationParams:
             "rated_output": self._actual_rated_capa,
             "cost_ratio": self._cost_ratio,
             "c_env": self._c_env,
+            "electricity prices": self._ele_prices,
             "sell_price": self._sell_price,
+            "solar_generation_data": self._solar_data,
             "start_time": self._start_time,
             "step": self._step,
             "output_len": self.output_len,

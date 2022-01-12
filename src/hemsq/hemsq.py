@@ -112,8 +112,12 @@ class HemsQ:
         normalize_rate = 0.01 #正規化何倍
         sche_times = int(sp.output_len / sp.resche_span) #何回組み直すか
         result_sche = [] #スケジュールを追加するリスト
-        D_all, Sun_all, C_ele_all, C_sun_all =\
-             makeInput(sp.demand, sp.tenki, normalize_rate, sp._unit, sp._sell_price) #24時間分のデータ
+        D_all = rounding(sp.demand)
+        solar_by_weather = make_sun_by_weather(sp.solar_data, sp.tenki)
+        Sun_all = rounding(solar_by_weather)
+        C_ele_all = normalize(sp.ele_prices, normalize_rate * sp.unit / 1000)
+        C_sun_all = normalize([sp.sell_price] * 24, normalize_rate * sp.unit / 1000)
+        
         # 出力するデータの作成
         start = sp.start_time
         end = sp.start_time + sp.output_len - 1
@@ -121,6 +125,10 @@ class HemsQ:
         Sun_op = rotate(start, end, Sun_all)
         C_ele_op = rotate(start, end, C_ele_all)
         C_sun_op = rotate(start, end, C_sun_all)
+        rotated_demand = rotate(start, end, sp.demand)
+        rotated_sun = rotate(start, end, solar_by_weather)
+        rotated_c_ele = rotate(start, end, sp.ele_prices)
+        rotated_c_sun = rotate(start, end, [sp.sell_price] * 24)
 
         B_0 = int(sp.actual_b_0 / sp.unit)
         B_max = int(sp.actual_b_max / sp.unit)
@@ -206,6 +214,10 @@ class HemsQ:
             Sun_op=Sun_op,
             C_ele_op=C_ele_op,
             C_sun_op=C_sun_op,
+            rotated_demand=rotated_demand,
+            rotated_sun=rotated_sun,
+            rotated_c_ele=rotated_c_ele,
+            rotated_c_sun=rotated_c_sun,
             result_sche=result_sche,
         )
         merge_sche(opr)
