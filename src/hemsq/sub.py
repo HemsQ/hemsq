@@ -60,7 +60,7 @@ def make_sun_by_weather(solar_data, tenki):
 
 
 # リストを四捨五入してカードにする
-def rounding(lst):
+def rounding(lst, unit):
     # unitで割って
     lst1 = list(normalize(lst, 1 / unit))
     # 小数点を四捨五入

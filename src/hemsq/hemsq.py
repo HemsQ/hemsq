@@ -112,9 +112,9 @@ class HemsQ:
         normalize_rate = 0.01 #正規化何倍
         sche_times = int(sp.output_len / sp.resche_span) #何回組み直すか
         result_sche = [] #スケジュールを追加するリスト
-        D_all = rounding(sp.demand)
+        D_all = rounding(sp.demand, sp.unit)
         solar_by_weather = make_sun_by_weather(sp.solar_data, sp.tenki)
-        Sun_all = rounding(solar_by_weather)
+        Sun_all = rounding(solar_by_weather, sp.unit)
         C_ele_all = normalize(sp.ele_prices, normalize_rate * sp.unit / 1000)
         C_sun_all = normalize([sp.sell_price] * 24, normalize_rate * sp.unit / 1000)
         
