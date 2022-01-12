@@ -211,26 +211,56 @@ class HemsQ:
         merge_sche(opr)
         self._oprs.append(opr)
 
-    def show_info(self):
-        pass
-
-    def show_schedule(self):
-        pass
-
-    def show_solar_balance(self):
-        pass
-
-    def show_supply_and_demand(self):
-        pass
-
-    def show_money_graph(self):
-        pass
-
-    def show_all(self):
-        self.show_info()
-        self.show_schedule()
-        self.show_solar_balance()
-        self.show_supply_and_demand()
-        self.show_money_graph()
+    def show_cost(self, result=None):
         opr = self._oprs[-1]
-        output(opr)
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        costPrint(opr)
+
+    def show_schedule(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        make2Table(opr)
+
+    def show_demand(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        plot_demand(opr)
+
+    def show_solar(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        plot_solar(opr)
+
+    def show_cost_and_charge(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        plot_cost_charge(opr)
+
+    def show_cost_and_use(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        plot_cost_use(opr)
+
+    def show_all(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        self.show_cost(result=opr)
+        self.show_schedule(result=opr)
+        self.show_demand(result=opr)
+        self.show_solar(result=opr)
+        self.show_cost_and_charge(result=opr)
+        self.show_cost_and_use(result=opr)

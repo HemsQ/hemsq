@@ -326,131 +326,140 @@ def costPrint(opr):
     CO2 = my_round(0.445 * e_cost * opr.sp.unit / 1000, 1)
     print("CO2 Emissions:", CO2, "kg")
 
-#棒グラフ
-def plotBar(start, schedule, Data, mode, unit, normalize_rate, output_len):
-    step_labels = [str((i+start)%24) for i in list(range(output_len))]    
-    if mode == 1:
-        data_name = "Demand"
-        barvalue_ = list(itemgetter(0, 3, 4)(schedule))
-        pop_lst = [1, 2, 5]
-        title = "Demand and Supply"
+
+def set_title(ax, title):
+    ax.set_title(title, fontsize=20)
+
+def set_legend(ax, ax_right=None):
+    if ax_right:
+        hans1, labs1 = ax.get_legend_handles_labels()
+        hans2, labs2 = ax_right.get_legend_handles_labels()
+        ax.legend(hans1 + hans2, labs1 + labs2, loc="upper left",
+                  bbox_to_anchor=(1.2, 1.0), fontsize=15)
     else:
-        data_name="Solar Power Generation"        
-        barvalue_ = list(itemgetter(0, 1, 2)(schedule))
-        pop_lst = [3, 4, 5] 
-        title = "Balance of Solar Power"
-    how_labels = [
-        data_name,
+        ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=18)
+
+def set_ax(ax, xlabel, ylabel, ax_right=None, ylabel_right=''):
+    if ax_right:
+        ax_right.set_ylabel(ylabel_right, fontsize=18)
+        ax_right.tick_params(axis='x', labelsize=15)
+        ax_right.tick_params(axis='y', labelsize=15)
+        y_min, y_max = ax_right.get_ylim()
+        ax_right.set_ylim(y_min, y_max)
+    ax.set_xlabel(xlabel, fontsize=18)
+    ax.set_xticks([i * 3 for i in range(8)])
+    ax.set_ylabel(ylabel, fontsize=18)
+    ax.tick_params(axis='x', labelsize=15)
+    ax.tick_params(axis='y', labelsize=15)
+
+def set_y_ax_right(ax, name):
+    ax.set_ylabel(name, fontsize=18)    
+    ax.tick_params(axis='y', labelsize=15)
+    y_min, y_max = ax.get_ylim()
+    ax.set_ylim(y_min, y_max)
+
+def plot_bar(ax, opr, barvalue, labels, colors, left=False):
+    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
+    df0 = pd.DataFrame(barvalue)
+    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))]\
+                     for j in range(opr.sp.output_len)][k]) for k in range(opr.sp.output_len)])
+    ax.set_ylim(0, ymax + 10)
+    width = 0.3
+    if left:
+        width *= -1
+    for i in range(len(df0)):
+        ax.bar(step_labels, df0.iloc[i], width=width,
+               align='edge', bottom=df0.iloc[:i].sum(), color=colors[i], label=labels[i])
+    
+def plot_line(ax, opr, data, label, color):
+    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
+    ax.plot(step_labels, data, color=color, alpha=1, label=label)
+
+def plot_demand(opr):
+    fig, ax = plt.subplots(figsize=(6, 4.8))
+    data = opr.D_op
+    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
+    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    target_data = list(map(int, normalize(data, opr.sp.unit)))
+    title = "Demand and Supply"
+    labels = [
+        "Demand",
+        "Use of Solar Power",
+        "Use of Battery Electricity",
+        "Use of Commercial Electricity",
+    ]
+    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
+    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
+    # グラフの設定
+    set_title(ax, title)
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    plt.show()
+
+def plot_solar(opr):
+    fig, ax = plt.subplots(figsize=(6, 4.8))
+    data = opr.Sun_op
+    barvalue_source = list(itemgetter(0, 1, 2)(opr.output_sche))
+    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    target_data = list(map(int, normalize(data, opr.sp.unit)))
+    title = "Balance of Solar Power"
+    labels = [
+        "Solar Power Generation",
         "Use of Solar Power",
         "Charge of Solar Power",
         "Sales of Solar Power",
-        "Use of Battery Electricity",
-        "Use of Commercial Electricity",
-        "Charge of Commercial Electricity"
     ]
-    color = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    for i in sorted(pop_lst, reverse=True):
-        how_labels.pop(i+1)
-    barvalue = unitDouble(barvalue_, normalize_rate, unit)      
-    data=list(map(int, normalize(Data, unit)))
-    df0 = pd.DataFrame(barvalue, index=how_labels[1:])
-    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))]\
-                     for j in range(output_len)][k]) for k in range(output_len)])
-    fig, ax = plt.subplots(figsize=(6, 4.8), dpi=150)
-    ax.bar(step_labels, data, width=-0.3, align='edge', color=color[0])        
-    for i in range(len(df0)):
-        ax.bar(step_labels, df0.iloc[i], width=0.3,\
-               align='edge', bottom=df0.iloc[:i].sum(), color=color[i+1])
-    #凡例
-    ax.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0),\
-              fontsize=18)
-    #x軸
-    ax.set_xlabel('Time', fontsize=18)
-    ax.set_xticks([i*3 for i in range(8)])    
-    ax.tick_params(axis='x', labelsize=5)
-    #y軸
-    ax.set_ylabel('Electricity (W)', fontsize=18)    
-    ax.set_ylim(0, ymax + 10)
-    ax.tick_params(axis='y', labelsize =15)
-    #タイトル
-    ax.set_title(title, fontsize=20)
+    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
+    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
+    # グラフの設定
+    set_title(ax, title)
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    plt.show()
+
+def plot_cost_charge(opr):
+    fig, ax = plt.subplots(figsize=(6, 4.8))
+    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
+    barvalue_source = list(itemgetter(1, 5)(opr.output_sche))
+    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    title = "Transition of Commercial Electricity and Charging"
+    labels = [
+        "Charge of Solar Power",
+        "Charge of Commercial Electricity",
+    ]
+    colors = ['orange', 'deepskyblue', 'limegreen']
+    plot_bar(ax, opr, barvalue, labels, colors, left=False)
+    ax_right = ax.twinx()
+    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    # グラフの設定
+    set_title(ax, title)
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    set_legend(ax, ax_right=ax_right)
     plt.show()
 
 
-def plotBar_bat(start, schedule, mode, C_ele, unit, normalize_rate, output_len):
-    step_labels = [str((i+start)%24) for i in list(range(output_len+1))] 
-    #充電のグラフ
-    if mode==0:       
-        data_name = "Charge and Prices"           
-        barvalue_ = list(itemgetter(1, 5)(schedule))
-        title = "Transition of Commercial Electricity and Charging"
-        how_labels = [
-            data_name,
-            "Charge of Solar Power",
-            "Charge of Commercial Electricity",
-            "Commercial Electricity Prices",
-        ]
-    #使用のグラフ
-    else:
-        data_name = "Use and Prices"           
-        barvalue_ = list(itemgetter(0, 3, 4)(schedule))
-        title = "Transition of Commercial Electricity and Use of Electricity"
-        how_labels = [
-            data_name,
-            "Use of Solar Power",
-            "Use of Commercial Electricity",
-            "Use of Battery Electricity",
-            "Commercial Electricity Prices",
-        ]
-    barvalue = unitDouble(barvalue_, normalize_rate, unit) 
-    color = ['orange', 'deepskyblue', 'limegreen']
-    #時間ごとの充電・使用量の最大値を求めておきy軸の上限を定めておく
-    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))] \
-                     for j in range(output_len)][k]) for k in range(output_len)])
-    c_ele = normalize(C_ele, 1/normalize_rate)
-    df0 = pd.DataFrame(barvalue, index=how_labels[1: len(how_labels)-1])
-    #ax1:使用・充電の棒グラフ
-    fig, ax1 = plt.subplots(figsize=(6, 4.8), dpi=150)
-    for i in range(len(df0)):
-        ax1.bar(step_labels[:-1], df0.iloc[i], width=0.3, align='edge',
-                bottom=df0.iloc[:i].sum(), label=how_labels[1+i], color=color[i])
-    #凡例
-    ax1.legend(how_labels, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=18)
-    #タイトル
-    ax1.set_title(title, fontsize=20)
-    ax1.set_ylim(0, ymax + 10)
-    hans1, labs1 = ax1.get_legend_handles_labels()    
-    #x軸
-    ax1.set_xlabel('Time', fontsize=18)
-    ax1.tick_params(axis='x', labelsize=15)
-    #y軸
-    ax1.set_ylabel('Electricity (W)', fontsize=18)    
-    ax1.tick_params(axis='y', labelsize=15)
-    #ax2:商用電源の折れ線グラフ
-    ax2 = ax1.twinx()
-    ax2.plot(step_labels[:-1], c_ele, color='r', alpha=1, label=how_labels[len(how_labels)-1])
-    ax2.set_ylabel('Prices (yen)', fontsize=18)    
-    ax2.tick_params(axis='x', labelsize=15)
-    ax2.tick_params(axis='y', labelsize=15)
-    y_min, y_max = ax2.get_ylim()
-    ax2.set_ylim(y_min, y_max)
-    #凡例
-    hans2, labs2 = ax2.get_legend_handles_labels()
-    ax1.legend(hans1+hans2, labs1+labs2, loc="upper left", bbox_to_anchor=(1.2, 1.0), fontsize=15)
-    ax1.set_xticks([i*3 for i in range(8)])    
+def plot_cost_use(opr):
+    fig, ax = plt.subplots(figsize=(6, 4.8))
+    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
+    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
+    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    title = "Transition of Commercial Electricity and Use of Electricity"
+    labels = [
+        "Use of Solar Power",
+        "Use of Commercial Electricity",
+        "Use of Battery Electricity",
+    ]
+    colors = ['orange', 'deepskyblue', 'limegreen']
+    plot_bar(ax, opr, barvalue, labels, colors, left=False)
+    ax_right = ax.twinx()
+    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    # グラフの設定
+    set_title(ax, title)
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    set_legend(ax, ax_right=ax_right)
     plt.show()
-
-
-#グラフ4つ表示
-def makeBar(opr):
-    #太陽光の収支
-    plotBar(opr.sp.start_time, opr.output_sche, opr.Sun_op, 0, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
-    #需要と供給
-    plotBar(opr.sp.start_time, opr.output_sche, opr.D_op, 1, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
-    #商用電源料金と充電量
-    plotBar_bat(opr.sp.start_time, opr.output_sche, 0, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
-    #商用電源料金と使用量
-    plotBar_bat(opr.sp.start_time, opr.output_sche, 1, opr.C_ele_op, opr.sp.unit, opr.normalize_rate, opr.sp.output_len)
 
 
 #予測モデル型の場合の出力
@@ -459,8 +468,6 @@ def output(opr):
     costPrint(opr)
     #表表示
     make2Table(opr)
-    #棒グラフ表示
-    makeBar(opr)
 
 
 def merge_sche(opr):
