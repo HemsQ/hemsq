@@ -27,6 +27,9 @@ class SituationParams:
         # 環境コスト
         self._c_env = 0.5
 
+        # 太陽光の売電価格
+        self._sell_price = 8
+
         # 何時からのスケジュールを作るか
         self._start_time = 0
         # 何時間先まで見てスケジュール作るか
@@ -40,8 +43,6 @@ class SituationParams:
         self._tenki = ['r' for i in range(8)]
         # 需要パターン
         self._demand = [207,177,147,157,157,167,228,330,381,391,351,311,341,341,311,310,320,331,372,542,549,509,438,318]
-
-        self._client = None
 
     def set_unit(self, unit):
         self._unit = unit
@@ -73,6 +74,9 @@ class SituationParams:
     def set_c_env(self, c_env):
         self._c_env = c_env
 
+    def set_sell_price(self, sell_price):
+        self._sell_price = sell_price
+
     def set_start_time(self, start_time):
         self._start_time = start_time
 
@@ -90,9 +94,6 @@ class SituationParams:
 
     def set_demand(self, demand):
         self._demand = demand
-
-    def set_client(self, client):
-        self._client = client
 
     @property
     def unit(self):
@@ -135,6 +136,10 @@ class SituationParams:
         return self._c_env
 
     @property
+    def sell_price(self):
+        return self._sell_price
+
+    @property
     def start_time(self):
         return self._start_time
 
@@ -157,10 +162,6 @@ class SituationParams:
     @property
     def demand(self):
         return self._demand
-
-    @property
-    def client(self):
-        return self._client
     
     @property
     def all_params(self):
@@ -175,19 +176,17 @@ class SituationParams:
             "rated_output": self._actual_rated_capa,
             "cost_ratio": self._cost_ratio,
             "c_env": self._c_env,
+            "sell_price": self._sell_price,
             "start_time": self._start_time,
             "step": self._step,
             "output_len": self.output_len,
             "reschedule_span": self._resche_span,
             "weather_list": self._tenki,
             "demand_list": self._demand,
-            "client": self._client,
         }
 
     def reset_params(self):
         """
-        ユーザーが指定した client を除くパラメタをデフォルト値に戻す
+        パラメタをデフォルト値に戻す
         """
-        client = self._client
         self.__init__()
-        self.set_client(client)

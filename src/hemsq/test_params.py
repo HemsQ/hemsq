@@ -23,13 +23,13 @@ def test():
     assert isinstance(sp.actual_rated_capa, int)
     assert isinstance(sp.cost_ratio, float)
     assert isinstance(sp.c_env, float)
+    assert isinstance(sp.sell_price, int) or isinstance(sp.sell_price, float)
     assert isinstance(sp.start_time, int)
     assert isinstance(sp.step, int)
     assert isinstance(sp.output_len, int)
     assert isinstance(sp.resche_span, int)
     assert isinstance(sp.tenki, list)
     assert isinstance(sp.demand, list)
-    assert sp.client == None
 
     # set 関数のテスト
     sp.set_unit(50)
@@ -52,6 +52,8 @@ def test():
     assert sp.cost_ratio == 1.5
     sp.set_c_env(0.6)
     assert sp.c_env == 0.6
+    sp.set_sell_price(9)
+    assert sp.sell_price == 9
     sp.set_start_time(12)
     assert sp.start_time == 12
     sp.set_step(6)
@@ -64,7 +66,6 @@ def test():
     assert sp.tenki == ["c" for i in range(8)]
     sp.set_demand([100 for i in range(24)])
     assert sp.demand == [100 for i in range(24)]
-    # TODO: client のテスト
 
 
 test()
