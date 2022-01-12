@@ -223,6 +223,13 @@ class HemsQ:
             assert isinstance(result, OptParamsAndResult)
             opr = result
 
+    def show_demand(self, result=None):
+        opr = self._oprs[-1]
+        if result:
+            assert isinstance(result, OptParamsAndResult)
+            opr = result
+        plot_demand(opr)
+
     def show_solar(self, result=None):
         opr = self._oprs[-1]
         if result:
@@ -251,7 +258,8 @@ class HemsQ:
             opr = result
         self.show_info(result=opr)
         self.show_schedule(result=opr)
-        self.show_solar_balance(result=opr)
-        self.show_supply_and_demand(result=opr)
-        self.show_money_graph(result=opr)
+        self.show_demand(result=opr)
+        self.show_solar(result=opr)
+        self.show_cost_and_charge(result=opr)
+        self.show_cost_and_use(result=opr)
         output(opr)
