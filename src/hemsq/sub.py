@@ -273,9 +273,12 @@ def makeTable(start, data, labels, mode, output_len):
 
     
 def make2Table(opr):
-    demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
-    sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
-    cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
+    # demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
+    # sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
+    # cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
+    demand = opr.rotated_demand
+    sun = opr.rotated_sun
+    cost = opr.rotated_c_ele
     label = [
         "Demand (w)",
         "Solar Power Generation (w)",
@@ -366,10 +369,8 @@ def plot_line(ax, opr, data, label, color):
 
 def plot_demand(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = opr.D_op
     barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
     barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
-    target_data = list(map(int, normalize(data, opr.sp.unit)))
     title = "Demand and Supply"
     labels = [
         "Demand",
@@ -378,7 +379,7 @@ def plot_demand(opr):
         "Use of Commercial Electricity",
     ]
     colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, [opr.rotated_demand], labels[:1], colors[:1], left=True)
     plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
     # グラフの設定
     set_title(ax, title)
@@ -388,10 +389,8 @@ def plot_demand(opr):
 
 def plot_solar(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = opr.Sun_op
     barvalue_source = list(itemgetter(0, 1, 2)(opr.output_sche))
     barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
-    target_data = list(map(int, normalize(data, opr.sp.unit)))
     title = "Balance of Solar Power"
     labels = [
         "Solar Power Generation",
@@ -400,7 +399,7 @@ def plot_solar(opr):
         "Sales of Solar Power",
     ]
     colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, [opr.rotated_sun], labels[:1], colors[:1], left=True)
     plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
     # グラフの設定
     set_title(ax, title)
@@ -410,7 +409,6 @@ def plot_solar(opr):
 
 def plot_cost_charge(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
     barvalue_source = list(itemgetter(1, 5)(opr.output_sche))
     barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
     title = "Transition of Commercial Electricity and Charging"
@@ -421,7 +419,7 @@ def plot_cost_charge(opr):
     colors = ['orange', 'deepskyblue', 'limegreen']
     plot_bar(ax, opr, barvalue, labels, colors, left=False)
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
     # グラフの設定
     set_title(ax, title)
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
@@ -431,7 +429,6 @@ def plot_cost_charge(opr):
 
 def plot_cost_use(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
     barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
     barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
     title = "Transition of Commercial Electricity and Use of Electricity"
@@ -443,7 +440,7 @@ def plot_cost_use(opr):
     colors = ['orange', 'deepskyblue', 'limegreen']
     plot_bar(ax, opr, barvalue, labels, colors, left=False)
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
     # グラフの設定
     set_title(ax, title)
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
