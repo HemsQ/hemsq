@@ -439,6 +439,7 @@ def plot_cost_charge(opr):
     set_legend(ax, ax_right=ax_right)
     plt.show()
 
+
 def plot_cost_use(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
     data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
@@ -467,6 +468,7 @@ def output(opr):
     costPrint(opr)
     #表表示
     make2Table(opr)
+
 
 def merge_sche(opr):
     #時間ごとに組み直したスケジュールを24時間にまとめる
