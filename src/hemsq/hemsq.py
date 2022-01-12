@@ -211,17 +211,19 @@ class HemsQ:
         merge_sche(opr)
         self._oprs.append(opr)
 
-    def show_info(self, result=None):
+    def show_cost(self, result=None):
         opr = self._oprs[-1]
         if result:
             assert isinstance(result, OptParamsAndResult)
             opr = result
+        costPrint(opr)
 
     def show_schedule(self, result=None):
         opr = self._oprs[-1]
         if result:
             assert isinstance(result, OptParamsAndResult)
             opr = result
+        make2Table(opr)
 
     def show_demand(self, result=None):
         opr = self._oprs[-1]
@@ -256,10 +258,9 @@ class HemsQ:
         if result:
             assert isinstance(result, OptParamsAndResult)
             opr = result
-        self.show_info(result=opr)
+        self.show_cost(result=opr)
         self.show_schedule(result=opr)
         self.show_demand(result=opr)
         self.show_solar(result=opr)
         self.show_cost_and_charge(result=opr)
         self.show_cost_and_use(result=opr)
-        output(opr)
