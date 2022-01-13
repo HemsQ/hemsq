@@ -188,8 +188,8 @@ class HemsQ:
                         weight_lst.append([w_p, w_ineq1, w_ineq2])        
                         # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
                         if not broken_lst:
-                            actual_demand_t = rotate(start, end, sp.demand)
-                            actual_sun_t = rotate(start, end, solar_by_weather)
+                            actual_demand_t = normalize(rotate(start, end, sp.demand), 1 / sp.unit)
+                            actual_sun_t = normalize(rotate(start, end, solar_by_weather), 1 / sp.unit)
                             cur_len = min(sp.resche_span, sp.output_len - t * sp.resche_span)
                             postprocessed_schedule = post_process(schedule, actual_sun_t, actual_demand_t, cur_len)
                             result_sche.append([postprocessed_schedule[j][0: sp.resche_span] for j in range(7)])  
