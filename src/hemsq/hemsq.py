@@ -188,6 +188,7 @@ class HemsQ:
                         weight_lst.append([w_p, w_ineq1, w_ineq2])        
                         # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
                         if not broken_lst:
+                            print("schedule", schedule)
                             actual_demand_t = normalize(rotate(start, end, sp.demand), 1 / sp.unit)
                             actual_sun_t = normalize(rotate(start, end, solar_by_weather), 1 / sp.unit)
                             cur_len = min(sp.resche_span, sp.output_len - t * sp.resche_span)
@@ -226,6 +227,7 @@ class HemsQ:
         )
         merge_sche(opr)
         self._oprs.append(opr)
+        print("output_sche", opr.output_sche)
 
     def show_cost(self, result=None):
         opr = self._oprs[-1]
