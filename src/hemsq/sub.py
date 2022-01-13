@@ -467,3 +467,56 @@ def merge_sche(opr):
         output_sche.append(b)
     opr.set_output_sche(output_sche)
     return output_sche
+
+
+#太陽光の収支を揃える後処理
+def align_sun(schedule,Sun,output_len):
+    array = np.array(schedule).T
+    for t in range(output_len):
+        #出力-入力
+        dif = Sun[t] - sum(array[t][:3])
+        #出力＞発電量
+        if dif > 0:
+            array[t][2] += dif #発電量が余っているなら売る            
+        elif dif < 0:
+            while(-dif>0):
+                if array[t][2] > 0:
+                    array[t][2] -= 1 #太陽光売るの項目を減らす
+                elif array[t][1] > 0:
+                    array[t][1] -= 1 #太陽光貯めるの項目を減らす 
+                    array[t][6] -= 1 #蓄電池容量から減らす
+                elif array[t][0] > 0:
+                    array[t][0] -= 1 #太陽光使うの項目を減らす   
+                dif += 1
+        #発電量＞出力
+    schedule = (array.T).tolist()
+    return schedule
+            
+#需要の収支を揃える後処理
+def align_demand(schedule,D,output_len):
+    array = np.array(schedule).T
+    for t in range(output_len):
+        #需要-供給
+        dif = D[t] - array[t][0] - array[t][3] - array[t][4]
+        #需要＞供給なら
+        if dif > 0:
+            array[t][4] += dif  #商用電源を買う
+        #供給＞需要
+        elif dif < 0:
+            while(-dif>0):
+                if array[t][4] > 0:
+                    array[t][4] -= 1 #商用電源の項目を減らす                                        
+                elif array[t][3] > 0:
+                    array[t][3] -= 1 #蓄電池の項目を減らす
+                    array[t][6] -= 1 #蓄電池容量から減らす
+                elif array[t][0] > 0:
+                    array[t][0] -= 1 #太陽光の項目を減らす
+                dif += 1                
+    schedule = (array.T).tolist()       
+    return schedule
+
+#後処理をまとめて行う
+def post_process(schedule,Sun,D,output_len):
+    schedule = align_sun(schedule,Sun,output_len)
+    schedule = align_demand(schedule,D,output_len)
+    return schedule

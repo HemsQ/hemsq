@@ -188,7 +188,8 @@ class HemsQ:
                         weight_lst.append([w_p, w_ineq1, w_ineq2])        
                         # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
                         if not broken_lst:
-                            result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])  
+                            postprocessed_schedule = post_process(schedule, Sun_all, D_all, sp.output_len)
+                            result_sche.append([postprocessed_schedule[j][0: sp.resche_span] for j in range(7)])  
                             # print('success! resche time :', resche_start)
                             # print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)
                             break #満たす解があればfor文を抜ける
