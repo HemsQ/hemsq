@@ -181,7 +181,7 @@ class HemsQ:
                         #一つの項目が割り当てられる時間は一枠・opt_result取得
                         alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
                         #組み直し時間までの結果
-                        schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0) 
+                        schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0, sp.eta) 
                         #破った制約を追加する
                         broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
                         #重みを追加

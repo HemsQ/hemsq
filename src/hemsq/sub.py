@@ -129,9 +129,9 @@ def disuse(komoku_grp, B_0, B_max, D, step, disuse_lst=[]):
 
 
 #スケジュールをまとめる
-def makeSchedule(opt_result, step, total, komoku, B_0):
+def makeSchedule(opt_result, step, total, komoku, B_0, eta):
     schedule = [0] * step
-    B = B_0
+    B = B_0 * (1 - eta)
     for t in range(step):
         #tごとの各項目数を計上するための辞書
         do = {'sun_use': 0, 'sun_in': 0, 'sun_sell': 0,\
@@ -161,7 +161,7 @@ def makeSchedule(opt_result, step, total, komoku, B_0):
                             do['ele_in'] += 1
                             do['bat'] += 1
         schedule[t] = list(do.values())
-        B = do['bat']
+        B = int(do['bat'] * (1 - eta))
     #表作成の時のために転置しておく
     schedule = [list(x) for x in zip(*schedule)]
     return schedule
