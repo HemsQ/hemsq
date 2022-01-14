@@ -188,12 +188,6 @@ class HemsQ:
                         weight_lst.append([w_p, w_ineq1, w_ineq2])        
                         # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
                         if not broken_lst:
-                            print("schedule", schedule)
-                            # actual_demand_t = normalize(rotate(start, end, sp.demand), 1 / sp.unit)
-                            # actual_sun_t = normalize(rotate(start, end, solar_by_weather), 1 / sp.unit)
-                            # cur_len = min(sp.resche_span, sp.output_len - t * sp.resche_span)
-                            # postprocessed_schedule = post_process(schedule, actual_sun_t, actual_demand_t, cur_len)
-                            # result_sche.append([postprocessed_schedule[j][0: sp.resche_span] for j in range(7)])  
                             result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])  
                             # print('success! resche time :', resche_start)
                             # print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)
@@ -230,7 +224,6 @@ class HemsQ:
         unitdoubled_output_sche = unitDouble(opr.output_sche, sp.unit)
         postprocessed_output_sche =\
             post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
-        print("post_processed", postprocessed_output_sche)
         opr.set_output_sche(postprocessed_output_sche)
         self._oprs.append(opr)
 
