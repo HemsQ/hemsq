@@ -247,11 +247,10 @@ def constraint(schedule, Sun, D, B_max, satisfied):
 
 
 #項目の電力単位にする
-def unitDouble(schedule, normalize_rate, unit):
-    # ここでで定義されていた normalize() は消した
-    for i in range(len(schedule)):
-        schedule_ = [normalize(schedule[i], unit) for i in range(len(schedule))]
-    return schedule_
+def unitDouble(schedule, unit):
+    array = np.array(schedule).T
+    array *= unit
+    return (array.T).tolist()
 
 
 #表を作る
@@ -294,7 +293,7 @@ def make2Table(opr):
         "Charge of Commercial Electricity (w)",
         "Remaining amount of Battery (w)",
     ]
-    makeTable(opr.sp.start_time, unitDouble(opr.output_sche, opr.normalize_rate, opr.sp.unit), label, 1, opr.sp.output_len)  
+    makeTable(opr.sp.start_time, opr.output_sche, label, 1, opr.sp.output_len)  
 
 #最適解でかかった経費コストを計上してプリント出力する
 def costPrint(opr):
@@ -369,8 +368,7 @@ def plot_line(ax, opr, data, label, color):
 
 def plot_demand(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
     title = "Demand and Supply"
     labels = [
         "Demand",
@@ -389,8 +387,7 @@ def plot_demand(opr):
 
 def plot_solar(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue_source = list(itemgetter(0, 1, 2)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(0, 1, 2)(opr.output_sche))
     title = "Balance of Solar Power"
     labels = [
         "Solar Power Generation",
@@ -409,8 +406,7 @@ def plot_solar(opr):
 
 def plot_cost_charge(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue_source = list(itemgetter(1, 5)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(1, 5)(opr.output_sche))
     title = "Transition of Commercial Electricity and Charging"
     labels = [
         "Charge of Solar Power",
@@ -429,8 +425,7 @@ def plot_cost_charge(opr):
 
 def plot_cost_use(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
     title = "Transition of Commercial Electricity and Use of Electricity"
     labels = [
         "Use of Solar Power",
@@ -469,54 +464,68 @@ def merge_sche(opr):
     return output_sche
 
 
-#太陽光の収支を揃える後処理
-def align_sun(schedule,Sun,output_len):
+def align_sun(schedule, Sun, output_len):
+    # schedule はすでに unit を全要素にかけたもの
     array = np.array(schedule).T
     for t in range(output_len):
-        #出力-入力
+        # 出力-入力
         dif = Sun[t] - sum(array[t][:3])
-        #出力＞発電量
+        # 出力＞発電量
         if dif > 0:
-            array[t][2] += dif #発電量が余っているなら売る            
-        elif dif < 0:
-            while(-dif>0):
-                if array[t][2] > 0:
-                    array[t][2] -= 1 #太陽光売るの項目を減らす
-                elif array[t][1] > 0:
-                    array[t][1] -= 1 #太陽光貯めるの項目を減らす 
-                    array[t][6] -= 1 #蓄電池容量から減らす
-                elif array[t][0] > 0:
-                    array[t][0] -= 1 #太陽光使うの項目を減らす   
-                dif += 1
-        #発電量＞出力
+            array[t][2] += dif #発電量が余っているなら売る
+        # そうでなければ
+        # まず足りない dif を「太陽光を売る」から確保
+        if dif < 0 and array[t][2] > 0:
+            val = min(array[t][2], -dif)
+            array[t][2] -= val
+            dif += val
+        # それでも足りなければ dif を「太陽光を貯める」から確保
+        if dif < 0 and array[t][1] > 0:
+            val = min(array[t][1], -dif)
+            array[t][1] -= val
+            array[t][6] -= val  # 蓄電池容量から減らすことも忘れずに
+            dif += val
+        # それでも足りなければ dif を「太陽光を使う」から確保
+        if dif < 0 and array[t][0] > 0:
+            val = min(array[t][0], -dif)
+            array[t][0] -= val
+            dif += val
+        # ここで多分 dif == 0 が保証されている？
     schedule = (array.T).tolist()
     return schedule
-            
-#需要の収支を揃える後処理
-def align_demand(schedule,D,output_len):
+
+# 需要の収支を揃える後処理
+def align_demand(schedule, D, output_len):
+    # schedule はすでに unit を全要素にかけたもの
     array = np.array(schedule).T
     for t in range(output_len):
-        #需要-供給
+        # 需要-供給
         dif = D[t] - array[t][0] - array[t][3] - array[t][4]
-        #需要＞供給なら
+        # 需要＞供給なら
         if dif > 0:
             array[t][4] += dif  #商用電源を買う
-        #供給＞需要
-        elif dif < 0:
-            while(-dif>0):
-                if array[t][4] > 0:
-                    array[t][4] -= 1 #商用電源の項目を減らす                                        
-                elif array[t][3] > 0:
-                    array[t][3] -= 1 #蓄電池の項目を減らす
-                    array[t][6] -= 1 #蓄電池容量から減らす
-                elif array[t][0] > 0:
-                    array[t][0] -= 1 #太陽光の項目を減らす
-                dif += 1                
+        # 供給＞需要
+        # まず供給過多分をなるべく「商用電源の使用(購入)」から引く
+        if dif < 0 and array[t][4] > 0:
+            val = min(array[t][4], -dif)
+            array[t][4] -= val
+            dif += val
+        # それでも供給過多なら「蓄電池の使用」から引けるだけ引く
+        if dif < 0 and array[t][3] > 0:
+            val = min(array[t][3], -dif)
+            array[t][3] -= val
+            array[t][6] -= val  # 蓄電池容量から減らすことも忘れずに
+            dif += val
+        # それでも供給過多なら「太陽光の使用」から引けるだけ引く
+        if dif < 0 and array[t][0] > 0:
+            val = min(array[t][0], -dif)
+            array[t][3] -= val
+            dif += val             
     schedule = (array.T).tolist()       
     return schedule
 
 #後処理をまとめて行う
-def post_process(schedule,Sun,D,output_len):
-    schedule = align_sun(schedule,Sun,output_len)
-    schedule = align_demand(schedule,D,output_len)
+def post_process(schedule, Sun, D, output_len):
+    schedule = align_sun(schedule, Sun, output_len)
+    schedule = align_demand(schedule, D, output_len)
     return schedule
