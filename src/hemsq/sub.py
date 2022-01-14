@@ -34,7 +34,8 @@ def Weather3hours(tenki, sun):
 #四捨五入する関数
 def my_round(val, digit=0):
     p = 10 ** digit
-    return (val * p * 2 + 1) // 2 / p
+    rounded = (val * p * 2 + 1) // 2 / p
+    return int(rounded) if digit == 0 else rounded
 
 
 #リストを途中から一周する関数
@@ -265,6 +266,7 @@ def makeTable(start, data, labels, mode, output_len):
     fig = plt.figure(dpi=200)    
     ax1 = fig.add_subplot(2, 1, 1)
     df0 = pd.DataFrame(data, index=labels, columns=step_labels)
+    df0.applymap(my_round)
     ax1.axis('off')
     ax1.table(cellText=df0.values, colLabels=df0.columns,\
              rowLabels=df0.index, loc=loc, fontsize=15)
