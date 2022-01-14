@@ -74,7 +74,7 @@ def test():
     assert params["rated_output"] == 2000
     assert params["cost_ratio"] == 1.0
     assert params["c_env"] == 0.5
-    assert params["sell_price"] == 8
+    assert params["sell_price"] == 0.008
     assert params["start_time"] == 0
     assert params["step"] == 12
     assert params["output_len"] == 24

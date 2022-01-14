@@ -34,7 +34,8 @@ def Weather3hours(tenki, sun):
 #四捨五入する関数
 def my_round(val, digit=0):
     p = 10 ** digit
-    return (val * p * 2 + 1) // 2 / p
+    rounded = (val * p * 2 + 1) // 2 / p
+    return int(rounded) if digit == 0 else rounded
 
 
 #リストを途中から一周する関数
@@ -50,33 +51,22 @@ def rotate(start, end, lst):
     return nlst
 
 
-#24時間分の入力データを作る
-def makeInput(demand, tenki, normalize_rate, unit, sell_price):
+# 天気による太陽光発電量の算出
+def make_sun_by_weather(solar_data, tenki):
+    # 通常の家の発電量
+    solar_at_home = normalize(solar_data, 2)
+    # 天気で発電量を調整する
+    solar_by_weather = Weather3hours(tenki, solar_at_home)
+    return solar_by_weather
 
-    #1kWの太陽光パネル・快晴・9月
-    sun = [0,0,0,0,0,0,0,100,300,500,600,700,700,700,600,500,400,200,0,0,0,0,0,0]    
-    #通常の家の発電量
-    sun = normalize(sun, 2)
-    #天気で発電量を調整する
-    sun = Weather3hours(tenki, sun)
-    
-    #リストを四捨五入してカードにする
-    def rounding(lst):
-        #unitで割って
-        lst1 = list(normalize(lst, 1 / unit))
-        #小数点を四捨五入
-        lst2 = [int(my_round(lst1[i], 0)) for i in range(len(lst1))]
-        return lst2
 
-    #丸めてunitでわる
-    demand = rounding(demand)
-    sun = rounding(sun)
-    # もともと C_ele = eleCost() だったけど、このように変えた
-    C_ele = [12, 12, 12, 12, 12, 12, 12, 26, 26, 26, 39, 39, 39, 39, 39, 39, 39, 26, 26, 26, 26, 26, 26, 26]
-    C_sun = [sell_price] * 24
-    C_ele = normalize(C_ele, normalize_rate * unit / 1000)
-    C_sun = normalize(C_sun, normalize_rate * unit / 1000)
-    return demand, sun, C_ele, C_sun
+# リストを四捨五入してカードにする
+def rounding(lst, unit):
+    # unitで割って
+    lst1 = list(normalize(lst, 1 / unit))
+    # 小数点を四捨五入
+    lst2 = [int(my_round(lst1[i], 0)) for i in range(len(lst1))]
+    return lst2
 
 
 #項目の各種類で必要な数が入ったリストを作る
@@ -140,9 +130,9 @@ def disuse(komoku_grp, B_0, B_max, D, step, disuse_lst=[]):
 
 
 #スケジュールをまとめる
-def makeSchedule(opt_result, step, total, komoku, B_0):
+def makeSchedule(opt_result, step, total, komoku, B_0, eta):
     schedule = [0] * step
-    B = B_0
+    B = B_0 * (1 - eta)
     for t in range(step):
         #tごとの各項目数を計上するための辞書
         do = {'sun_use': 0, 'sun_in': 0, 'sun_sell': 0,\
@@ -172,7 +162,7 @@ def makeSchedule(opt_result, step, total, komoku, B_0):
                             do['ele_in'] += 1
                             do['bat'] += 1
         schedule[t] = list(do.values())
-        B = do['bat']
+        B = int(do['bat'] * (1 - eta))
     #表作成の時のために転置しておく
     schedule = [list(x) for x in zip(*schedule)]
     return schedule
@@ -258,11 +248,10 @@ def constraint(schedule, Sun, D, B_max, satisfied):
 
 
 #項目の電力単位にする
-def unitDouble(schedule, normalize_rate, unit):
-    # ここでで定義されていた normalize() は消した
-    for i in range(len(schedule)):
-        schedule_ = [normalize(schedule[i], unit) for i in range(len(schedule))]
-    return schedule_
+def unitDouble(schedule, unit):
+    array = np.array(schedule).T
+    array *= unit
+    return (array.T).tolist()
 
 
 #表を作る
@@ -277,16 +266,21 @@ def makeTable(start, data, labels, mode, output_len):
     fig = plt.figure(dpi=200)    
     ax1 = fig.add_subplot(2, 1, 1)
     df0 = pd.DataFrame(data, index=labels, columns=step_labels)
+    df0.applymap(my_round)
+    df = df0.astype('int64')
     ax1.axis('off')
-    ax1.table(cellText=df0.values, colLabels=df0.columns,\
-             rowLabels=df0.index, loc=loc, fontsize=15)
+    ax1.table(cellText=df.values, colLabels=df.columns,
+              rowLabels=df.index, loc=loc, fontsize=15)
     plt.show()
 
     
 def make2Table(opr):
-    demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
-    sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
-    cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
+    # demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
+    # sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
+    # cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
+    demand = opr.rotated_demand
+    sun = opr.rotated_sun
+    cost = opr.rotated_c_ele
     label = [
         "Demand (w)",
         "Solar Power Generation (w)",
@@ -302,28 +296,28 @@ def make2Table(opr):
         "Charge of Commercial Electricity (w)",
         "Remaining amount of Battery (w)",
     ]
-    makeTable(opr.sp.start_time, unitDouble(opr.output_sche, opr.normalize_rate, opr.sp.unit), label, 1, opr.sp.output_len)  
+    makeTable(opr.sp.start_time, opr.output_sche, label, 1, opr.sp.output_len)  
 
 #最適解でかかった経費コストを計上してプリント出力する
 def costPrint(opr):
     array = np.array(opr.output_sche)
-    cost = 0 #コストの合計
+    cost = 0 # コストの合計
     e_cost = 0
     for t in range(opr.sp.output_len):
-        #商用電源使用は4行目
-        from_ele = (array[4][t] + array[5][t]) * opr.C_ele_op[t] / opr.normalize_rate 
-        cost += from_ele
+        # 商用電源使用は4行目
+        from_ele = array[4][t] + array[5][t]
+        cost += from_ele * opr.rotated_c_ele[t]
         e_cost += from_ele
-        #太陽光売電は2行目
-        cost -= array[2][t] * opr.C_sun_op[t] / opr.normalize_rate
-    #コスト正なら
+        # 太陽光売電は2行目
+        cost -= array[2][t] * opr.rotated_c_sun[t]
+    # コスト正なら
     if cost >= 0:
         print("Cost:", cost, "(yen)")
-    #負なら
+    # 負なら
     else:
         print("Sales: ", -cost, "(yen)")
-    #CO2排出量（0.445kg/kWh)
-    CO2 = my_round(0.445 * e_cost * opr.sp.unit / 1000, 1)
+    # CO2排出量（0.445kg/kWh)
+    CO2 = my_round(0.445 * e_cost / 1000, 1)
     print("CO2 Emissions:", CO2, "kg")
 
 
@@ -377,10 +371,7 @@ def plot_line(ax, opr, data, label, color):
 
 def plot_demand(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = opr.D_op
-    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
-    target_data = list(map(int, normalize(data, opr.sp.unit)))
+    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
     title = "Demand and Supply"
     labels = [
         "Demand",
@@ -389,7 +380,7 @@ def plot_demand(opr):
         "Use of Commercial Electricity",
     ]
     colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, [opr.rotated_demand], labels[:1], colors[:1], left=True)
     plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
     # グラフの設定
     set_title(ax, title)
@@ -399,10 +390,7 @@ def plot_demand(opr):
 
 def plot_solar(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = opr.Sun_op
-    barvalue_source = list(itemgetter(0, 1, 2)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
-    target_data = list(map(int, normalize(data, opr.sp.unit)))
+    barvalue = list(itemgetter(0, 1, 2)(opr.output_sche))
     title = "Balance of Solar Power"
     labels = [
         "Solar Power Generation",
@@ -411,7 +399,7 @@ def plot_solar(opr):
         "Sales of Solar Power",
     ]
     colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [target_data], labels[:1], colors[:1], left=True)
+    plot_bar(ax, opr, [opr.rotated_sun], labels[:1], colors[:1], left=True)
     plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
     # グラフの設定
     set_title(ax, title)
@@ -421,9 +409,7 @@ def plot_solar(opr):
 
 def plot_cost_charge(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
-    barvalue_source = list(itemgetter(1, 5)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(1, 5)(opr.output_sche))
     title = "Transition of Commercial Electricity and Charging"
     labels = [
         "Charge of Solar Power",
@@ -432,7 +418,7 @@ def plot_cost_charge(opr):
     colors = ['orange', 'deepskyblue', 'limegreen']
     plot_bar(ax, opr, barvalue, labels, colors, left=False)
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
     # グラフの設定
     set_title(ax, title)
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
@@ -442,9 +428,7 @@ def plot_cost_charge(opr):
 
 def plot_cost_use(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
-    data = normalize(opr.C_ele_op, 1 / opr.normalize_rate)
-    barvalue_source = list(itemgetter(0, 3, 4)(opr.output_sche))
-    barvalue = unitDouble(barvalue_source, opr.normalize_rate, opr.sp.unit)
+    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
     title = "Transition of Commercial Electricity and Use of Electricity"
     labels = [
         "Use of Solar Power",
@@ -454,7 +438,7 @@ def plot_cost_use(opr):
     colors = ['orange', 'deepskyblue', 'limegreen']
     plot_bar(ax, opr, barvalue, labels, colors, left=False)
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, data, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
     # グラフの設定
     set_title(ax, title)
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
@@ -481,3 +465,70 @@ def merge_sche(opr):
         output_sche.append(b)
     opr.set_output_sche(output_sche)
     return output_sche
+
+
+def align_sun(schedule, Sun, output_len):
+    # schedule はすでに unit を全要素にかけたもの
+    array = np.array(schedule).T
+    for t in range(output_len):
+        # 出力-入力
+        dif = Sun[t] - sum(array[t][:3])
+        # 出力＞発電量
+        if dif > 0:
+            array[t][2] += dif #発電量が余っているなら売る
+        # そうでなければ
+        # まず足りない dif を「太陽光を売る」から確保
+        if dif < 0 and array[t][2] > 0:
+            val = min(array[t][2], -dif)
+            array[t][2] -= val
+            dif += val
+        # それでも足りなければ dif を「太陽光を貯める」から確保
+        if dif < 0 and array[t][1] > 0:
+            val = min(array[t][1], -dif)
+            array[t][1] -= val
+            array[t][6] -= val  # 蓄電池容量から減らすことも忘れずに
+            dif += val
+        # それでも足りなければ dif を「太陽光を使う」から確保
+        if dif < 0 and array[t][0] > 0:
+            val = min(array[t][0], -dif)
+            array[t][0] -= val
+            dif += val
+        # ここで多分 dif == 0 が保証されている？
+    schedule = (array.T).tolist()
+    return schedule
+
+# 需要の収支を揃える後処理
+def align_demand(schedule, D, output_len):
+    # schedule はすでに unit を全要素にかけたもの
+    array = np.array(schedule).T
+    for t in range(output_len):
+        # 需要-供給
+        dif = D[t] - array[t][0] - array[t][3] - array[t][4]
+        # 需要＞供給なら
+        if dif > 0:
+            array[t][4] += dif  #商用電源を買う
+        # 供給＞需要
+        # まず供給過多分をなるべく「商用電源の使用(購入)」から引く
+        if dif < 0 and array[t][4] > 0:
+            val = min(array[t][4], -dif)
+            array[t][4] -= val
+            dif += val
+        # それでも供給過多なら「蓄電池の使用」から引けるだけ引く
+        if dif < 0 and array[t][3] > 0:
+            val = min(array[t][3], -dif)
+            array[t][3] -= val
+            array[t][6] -= val  # 蓄電池容量から減らすことも忘れずに
+            dif += val
+        # それでも供給過多なら「太陽光の使用」から引けるだけ引く
+        if dif < 0 and array[t][0] > 0:
+            val = min(array[t][0], -dif)
+            array[t][3] -= val
+            dif += val             
+    schedule = (array.T).tolist()       
+    return schedule
+
+#後処理をまとめて行う
+def post_process(schedule, Sun, D, output_len):
+    schedule = align_sun(schedule, Sun, output_len)
+    schedule = align_demand(schedule, D, output_len)
+    return schedule

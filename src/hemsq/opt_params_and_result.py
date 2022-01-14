@@ -11,6 +11,10 @@ class OptParamsAndResult:
             Sun_op=None,
             C_ele_op=None,
             C_sun_op=None,
+            rotated_demand=None,
+            rotated_sun=None,
+            rotated_c_ele=None,
+            rotated_c_sun=None,
             result_sche=None,
             output_sche=None,
         ):
@@ -25,6 +29,10 @@ class OptParamsAndResult:
         self._Sun_op = Sun_op
         self._C_ele_op = C_ele_op
         self._C_sun_op = C_sun_op
+        self._rotated_demand = rotated_demand
+        self._rotated_sun = rotated_sun
+        self._rotated_c_ele = rotated_c_ele
+        self._rotated_c_sun = rotated_c_sun
         self._result_sche = result_sche
         self._output_sche = output_sche
 
@@ -60,6 +68,18 @@ class OptParamsAndResult:
 
     def set_C_sun_op(self, C_sun_op):
         self._C_sun_op = C_sun_op
+
+    def set_rotated_demand(self, rotated_demand):
+        self._rotated_demand = rotated_demand
+
+    def set_rotated_sun(self, rotated_sun):
+        self._rotated_sun = rotated_sun
+
+    def set_rotated_c_ele(self, rotated_c_ele):
+        self._rotated_c_ele = rotated_c_ele
+
+    def set_rotated_c_sun(self, rotated_c_sun):
+        self._rotated_c_sun = rotated_c_sun
 
     def set_result_sche(self, result_sche):
         self._result_sche = result_sche
@@ -110,6 +130,22 @@ class OptParamsAndResult:
     @property
     def C_sun_op(self):
         return self._C_sun_op
+
+    @property
+    def rotated_demand(self):
+        return self._rotated_demand
+
+    @property
+    def rotated_sun(self):
+        return self._rotated_sun
+
+    @property
+    def rotated_c_ele(self):
+        return self._rotated_c_ele
+
+    @property
+    def rotated_c_sun(self):
+        return self._rotated_c_sun
 
     @property
     def result_sche(self):
