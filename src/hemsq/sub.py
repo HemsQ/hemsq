@@ -267,9 +267,10 @@ def makeTable(start, data, labels, mode, output_len):
     ax1 = fig.add_subplot(2, 1, 1)
     df0 = pd.DataFrame(data, index=labels, columns=step_labels)
     df0.applymap(my_round)
+    df = df0.astype('int64')
     ax1.axis('off')
-    ax1.table(cellText=df0.values, colLabels=df0.columns,\
-             rowLabels=df0.index, loc=loc, fontsize=15)
+    ax1.table(cellText=df.values, colLabels=df.columns,
+              rowLabels=df.index, loc=loc, fontsize=15)
     plt.show()
 
     
