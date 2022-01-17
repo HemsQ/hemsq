@@ -55,13 +55,13 @@ def make_result(
         'sun_gen':
             Data('Solar Power Generation', sun_gen_list, 'W', 'lightgray'),
         'cost_ele':
-            Data('Commercial Electricity Prices', cost_ele_list, 'yen', 'mediumpurple'),
+            Data('Commercial Electricity Prices', cost_ele_list, 'yen', 'midnightblue'),
         'sun_sell_price':
             Data('Solar-Sell Prices', sun_sell_price_list, 'yen', ''),
         'sun_use':
-            Data('Use of Solar Power', sun_use_list, 'W', 'orangered'),
+            Data('Use of Solar Power', sun_use_list, 'W', 'coral'),
         'sun_charge':
-            Data('Charge of Solar Power', sun_charge_list, 'W', 'peachpuff'),
+            Data('Charge of Solar Power', sun_charge_list, 'W', 'gold'),
         'sun_sell':
             Data('Sales of Solar Power', sun_sell_list, 'W', 'aqua'),
         'bat_out':
