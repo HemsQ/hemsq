@@ -9,7 +9,7 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
-from .opt_params_and_result import OptParamsAndResult
+from .opt_params_and_result import OptParamsAndResult, make_result
 from .sub import *
 
 class HemsQ:
@@ -23,6 +23,7 @@ class HemsQ:
         self._client = None
         # 結果とそのときのパラメタを格納する OptParamsAndResult のリスト
         self._oprs = []
+        self._results = []
 
     def set_params(self,
             unit=None,
@@ -211,6 +212,21 @@ class HemsQ:
             rotated_c_sun=rotated_c_sun,
             output_sche=postprocessed_output_sche,
         ))
+        result = make_result(
+            sp,
+            rotated_demand,
+            rotated_sun,
+            rotated_c_ele,
+            rotated_c_sun,
+            postprocessed_output_sche[0],
+            postprocessed_output_sche[1],
+            postprocessed_output_sche[2],
+            postprocessed_output_sche[3],
+            postprocessed_output_sche[4],
+            postprocessed_output_sche[5],
+            postprocessed_output_sche[6],
+        )
+        self._results.append(result)
 
     def show_cost(self, result=None):
         opr = self._oprs[-1]
