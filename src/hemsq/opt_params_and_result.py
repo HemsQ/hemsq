@@ -53,7 +53,7 @@ def make_result(
         'demand':
             Data('Demand', demand_list, 'W', 'gray'),
         'sun_gen':
-            Data('Solar Power Generation', sun_gen_list, 'W', 'steelblue'),
+            Data('Solar Power Generation', sun_gen_list, 'W', 'lightgray'),
         'cost_ele':
             Data('Commercial Electricity Prices', cost_ele_list, 'yen', 'mediumpurple'),
         'sun_sell_price':
@@ -61,15 +61,15 @@ def make_result(
         'sun_use':
             Data('Use of Solar Power', sun_use_list, 'W', 'orangered'),
         'sun_charge':
-            Data('Charge of Solar Power', sun_charge_list, 'W', 'orange'),
+            Data('Charge of Solar Power', sun_charge_list, 'W', 'peachpuff'),
         'sun_sell':
-            Data('Sales of Solar Power', sun_sell_list, 'W', 'forestgreen'),
+            Data('Sales of Solar Power', sun_sell_list, 'W', 'aqua'),
         'bat_out':
             Data('Use of Battery Electricity', bat_out_list, 'W', 'deepskyblue'),
         'ele_use':
             Data('Use of Commercial Electricity', ele_use_list, 'W', 'limegreen'),
         'ele_charge':
-            Data('Charge of Commercial Electricity', ele_charge_list, 'W', 'yellow'),
+            Data('Charge of Commercial Electricity', ele_charge_list, 'W', 'khaki'),
         'bat':
             Data('Remaining amount of Battery', bat_list, 'W', 'pink'),
     }
