@@ -242,33 +242,53 @@ class HemsQ:
             opr = result
         make2Table(opr)
 
+    @property
+    def demand_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_demand(result)
+
     def show_demand(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_demand(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.demand_graph(result=result)
+        plt.show()
+
+    @property
+    def solar_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_solar(result)
 
     def show_solar(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_solar(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.solar_graph(result=result)
+        plt.show()
+
+    @property
+    def cost_and_charge_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_cost_charge(result)
 
     def show_cost_and_charge(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_cost_charge(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.cost_and_charge_graph(result=result)
+        plt.show()
+
+    @property
+    def cost_and_use_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_cost_use(result)
 
     def show_cost_and_use(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_cost_use(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.cost_and_use_graph(result=result)
+        plt.show()
 
     def show_all(self, result=None):
         opr = self._oprs[-1]
@@ -277,21 +297,11 @@ class HemsQ:
             opr = result
         self.show_cost(result=opr)
         self.show_schedule(result=opr)
-        self.show_demand(result=opr)
-        self.show_solar(result=opr)
-        self.show_cost_and_charge(result=opr)
-        self.show_cost_and_use(result=opr)
 
     def show_all_v2(self, result=None):
-        r = self._results[-1]
-        if result:
-            r = result
-        plot_demand_v2(r)
-        plt.show()
-        plot_solar_v2(r)
-        plt.show()
-        plot_cost_charge_v2(r)
-        plt.show()
-        plot_cost_use_v2(r)
-        plt.show()
-        plt.show()
+        if result == None:
+            result = self._results[-1]
+        self.show_demand(result=result)
+        self.show_solar(result=result)
+        self.show_cost_and_charge(result=result)
+        self.show_cost_and_use(result=result)

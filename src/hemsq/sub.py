@@ -352,20 +352,7 @@ def set_y_ax_right(ax, name):
     y_min, y_max = ax.get_ylim()
     ax.set_ylim(y_min, y_max)
 
-def plot_bar(ax, opr, barvalue, labels, colors, left=False):
-    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
-    df0 = pd.DataFrame(barvalue)
-    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))]\
-                     for j in range(opr.sp.output_len)][k]) for k in range(opr.sp.output_len)])
-    ax.set_ylim(0, ymax + 10)
-    width = 0.3
-    if left:
-        width *= -1
-    for i in range(len(df0)):
-        ax.bar(step_labels, df0.iloc[i], width=width,
-               align='edge', bottom=df0.iloc[:i].sum(), color=colors[i], label=labels[i])
-
-def plot_bar_v2(ax, result, items, is_left=False):
+def plot_bar(ax, result, items, is_left=False):
     barvalues = []
     for item in items:
         barvalues.append(result[item].data)
@@ -381,35 +368,12 @@ def plot_bar_v2(ax, result, items, is_left=False):
                align='edge', bottom=np.sum(np_barvalues[:i], axis=0),
                color=data.color, label=data.name_with_tani)
 
-def plot_line(ax, opr, data, label, color):
-    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
-    ax.plot(step_labels, data, color=color, alpha=1, label=label)
-
-def plot_line_v2(ax, result, item):
+def plot_line(ax, result, item):
     data = result[item]
     ax.plot(result['x_ticks'], data.data,
             color=data.color, label=data.name_with_tani, alpha=1)
 
-def plot_demand(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
-    title = "Demand and Supply"
-    labels = [
-        "Demand",
-        "Use of Solar Power",
-        "Use of Battery Electricity",
-        "Use of Commercial Electricity",
-    ]
-    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [opr.rotated_demand], labels[:1], colors[:1], left=True)
-    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
-    # グラフの設定
-    set_title(ax, title)
-    set_legend(ax)
-    set_ax(ax, 'Time', 'Electricity (W)')
-    plt.show()
-
-def plot_demand_v2(result, figsize=(6, 4.8)):
+def plot_demand(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
     plot_bar_v2(ax, result, ['demand'], is_left=True)
     plot_bar_v2(ax, result, ['sun_use', 'bat_out', 'ele_use'])
@@ -419,26 +383,7 @@ def plot_demand_v2(result, figsize=(6, 4.8)):
     set_ax(ax, 'Time', 'Electricity (W)')
     return fig, ax
 
-def plot_solar(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 1, 2)(opr.output_sche))
-    title = "Balance of Solar Power"
-    labels = [
-        "Solar Power Generation",
-        "Use of Solar Power",
-        "Charge of Solar Power",
-        "Sales of Solar Power",
-    ]
-    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [opr.rotated_sun], labels[:1], colors[:1], left=True)
-    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
-    # グラフの設定
-    set_title(ax, title)
-    set_legend(ax)
-    set_ax(ax, 'Time', 'Electricity (W)')
-    plt.show()
-
-def plot_solar_v2(result, figsize=(6, 4.8)):
+def plot_solar(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
     plot_bar_v2(ax, result, ['sun_gen'], is_left=True)
     plot_bar_v2(ax, result, ['sun_use', 'sun_charge', 'sun_sell'])
@@ -448,25 +393,7 @@ def plot_solar_v2(result, figsize=(6, 4.8)):
     set_ax(ax, 'Time', 'Electricity (W)')
     return fig, ax
 
-def plot_cost_charge(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(1, 5)(opr.output_sche))
-    title = "Transition of Commercial Electricity and Charging"
-    labels = [
-        "Charge of Solar Power",
-        "Charge of Commercial Electricity",
-    ]
-    colors = ['orange', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, barvalue, labels, colors, left=False)
-    ax_right = ax.twinx()
-    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
-    # グラフの設定
-    set_title(ax, title)
-    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
-    set_legend(ax, ax_right=ax_right)
-    plt.show()
-
-def plot_cost_charge_v2(result, figsize=(6, 4.8)):
+def plot_cost_charge(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
     plot_bar_v2(ax, result, ['sun_charge', 'ele_charge'])
     ax_right = ax.twinx()
@@ -477,26 +404,7 @@ def plot_cost_charge_v2(result, figsize=(6, 4.8)):
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
     return fig, ax
 
-def plot_cost_use(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
-    title = "Transition of Commercial Electricity and Use of Electricity"
-    labels = [
-        "Use of Solar Power",
-        "Use of Commercial Electricity",
-        "Use of Battery Electricity",
-    ]
-    colors = ['orange', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, barvalue, labels, colors, left=False)
-    ax_right = ax.twinx()
-    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
-    # グラフの設定
-    set_title(ax, title)
-    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
-    set_legend(ax, ax_right=ax_right)
-    plt.show()
-
-def plot_cost_use_v2(result, figsize=(6, 4.8)):
+def plot_cost_use(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
     plot_bar_v2(ax, result, ['sun_use', 'ele_use', 'bat_out'])
     ax_right = ax.twinx()
@@ -506,13 +414,6 @@ def plot_cost_use_v2(result, figsize=(6, 4.8)):
     set_legend(ax, ax_right=ax_right)
     set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
     return fig, ax
-
-#予測モデル型の場合の出力
-def output(opr):
-    #値段表示
-    costPrint(opr)
-    #表表示
-    make2Table(opr)
 
 
 def make_output_sche(result_sche, sche_times):
