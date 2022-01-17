@@ -69,9 +69,9 @@ def make_result(
         'ele_use':
             Data('Use of Commercial Electricity', ele_use_list, 'W', 'limegreen'),
         'ele_charge':
-            Data('Charge of Commercial Electricity', ele_charge_list, 'W', 'khaki'),
+            Data('Charge of Commercial Electricity', ele_charge_list, 'W', 'pink'),
         'bat':
-            Data('Remaining amount of Battery', bat_list, 'W', 'pink'),
+            Data('Remaining amount of Battery', bat_list, 'W', 'mediumpurple'),
     }
 
 
