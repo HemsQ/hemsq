@@ -369,7 +369,7 @@ def plot_bar_v2(ax, result, items, is_left=False):
     barvalues = []
     for item in items:
         barvalues.append(result[item].data)
-    np_barvalues = np.array(barvalue)
+    np_barvalues = np.array(barvalues)
     ymax = max(np.sum(np_barvalues, axis=0))
     ax.set_ylim(0, ymax + 10)
     width = 0.3
