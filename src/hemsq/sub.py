@@ -473,8 +473,8 @@ def plot_cost_charge_v2(result, figsize=(6, 4.8)):
     plot_line_v2(ax_right, result, 'cost_ele')
     # グラフの設定
     set_title(ax, 'Balance of Solar Power')
-    set_legend(ax)
-    set_ax(ax, 'Time', 'Electricity (W)')
+    set_legend(ax, ax_right=ax_right)
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
     return fig, ax
 
 def plot_cost_use(opr):
@@ -503,8 +503,8 @@ def plot_cost_use_v2(result, figsize=(6, 4.8)):
     plot_line_v2(ax_right, result, 'cost_ele')
     # グラフの設定
     set_title(ax, 'Commercial Electricity and Use of Electricity')
-    set_legend(ax)
-    set_ax(ax, 'Time', 'Electricity (W)')
+    set_legend(ax, ax_right=ax_right)
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
     return fig, ax
 
 #予測モデル型の場合の出力
