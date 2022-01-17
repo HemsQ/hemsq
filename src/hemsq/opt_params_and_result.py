@@ -2,7 +2,6 @@ class OptParamsAndResult:
     def __init__(self,
             sp=None,
             normalize_rate=None,
-            sche_times=None,
             rotated_demand=None,
             rotated_sun=None,
             rotated_c_ele=None,
@@ -11,7 +10,6 @@ class OptParamsAndResult:
         ):
         self._sp = sp
         self._normalize_rate = normalize_rate
-        self._sche_times = sche_times
         self._rotated_demand = rotated_demand
         self._rotated_sun = rotated_sun
         self._rotated_c_ele = rotated_c_ele
@@ -23,9 +21,6 @@ class OptParamsAndResult:
 
     def set_normalize_rate(self, normalize_rate):
         self._normalize_rate = normalize_rate
-
-    def set_sche_times(self, sche_times):
-        self._sche_times = sche_times
 
     def set_rotated_demand(self, rotated_demand):
         self._rotated_demand = rotated_demand
@@ -49,10 +44,6 @@ class OptParamsAndResult:
     @property
     def normalize_rate(self):
         return self._normalize_rate
-
-    @property
-    def sche_times(self):
-        return self._sche_times
 
     @property
     def rotated_demand(self):

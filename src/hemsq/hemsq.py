@@ -205,7 +205,6 @@ class HemsQ:
         self._oprs.append(OptParamsAndResult(
             sp=copy.copy(sp),
             normalize_rate=normalize_rate,
-            sche_times=sche_times,
             rotated_demand=rotated_demand,
             rotated_sun=rotated_sun,
             rotated_c_ele=rotated_c_ele,
