@@ -375,8 +375,8 @@ def plot_line(ax, result, item):
 
 def plot_demand(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
-    plot_bar_v2(ax, result, ['demand'], is_left=True)
-    plot_bar_v2(ax, result, ['sun_use', 'bat_out', 'ele_use'])
+    plot_bar(ax, result, ['demand'], is_left=True)
+    plot_bar(ax, result, ['sun_use', 'bat_out', 'ele_use'])
     # グラフの設定
     set_title(ax, 'Demand and Supply')
     set_legend(ax)
@@ -385,8 +385,8 @@ def plot_demand(result, figsize=(6, 4.8)):
 
 def plot_solar(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
-    plot_bar_v2(ax, result, ['sun_gen'], is_left=True)
-    plot_bar_v2(ax, result, ['sun_use', 'sun_charge', 'sun_sell'])
+    plot_bar(ax, result, ['sun_gen'], is_left=True)
+    plot_bar(ax, result, ['sun_use', 'sun_charge', 'sun_sell'])
     # グラフの設定
     set_title(ax, 'Balance of Solar Power')
     set_legend(ax)
@@ -395,9 +395,9 @@ def plot_solar(result, figsize=(6, 4.8)):
 
 def plot_cost_charge(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
-    plot_bar_v2(ax, result, ['sun_charge', 'ele_charge'])
+    plot_bar(ax, result, ['sun_charge', 'ele_charge'])
     ax_right = ax.twinx()
-    plot_line_v2(ax_right, result, 'cost_ele')
+    plot_line(ax_right, result, 'cost_ele')
     # グラフの設定
     set_title(ax, 'Balance of Solar Power')
     set_legend(ax, ax_right=ax_right)
@@ -406,9 +406,9 @@ def plot_cost_charge(result, figsize=(6, 4.8)):
 
 def plot_cost_use(result, figsize=(6, 4.8)):
     fig, ax = plt.subplots(figsize=figsize)
-    plot_bar_v2(ax, result, ['sun_use', 'ele_use', 'bat_out'])
+    plot_bar(ax, result, ['sun_use', 'ele_use', 'bat_out'])
     ax_right = ax.twinx()
-    plot_line_v2(ax_right, result, 'cost_ele')
+    plot_line(ax_right, result, 'cost_ele')
     # グラフの設定
     set_title(ax, 'Commercial Electricity and Use of Electricity')
     set_legend(ax, ax_right=ax_right)
