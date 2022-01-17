@@ -121,10 +121,6 @@ class HemsQ:
         # 出力するデータの作成
         start = sp.start_time
         end = sp.start_time + sp.output_len - 1
-        D_op = rotate(start, end, D_all)
-        Sun_op = rotate(start, end, Sun_all)
-        C_ele_op = rotate(start, end, C_ele_all)
-        C_sun_op = rotate(start, end, C_sun_all)
         rotated_demand = rotate(start, end, sp.demand)
         rotated_sun = rotate(start, end, solar_by_weather)
         rotated_c_ele = rotate(start, end, sp.ele_prices)
@@ -206,10 +202,6 @@ class HemsQ:
             sp=copy.copy(sp),
             normalize_rate=normalize_rate,
             sche_times=sche_times,
-            D_op=D_op,
-            Sun_op=Sun_op,
-            C_ele_op=C_ele_op,
-            C_sun_op=C_sun_op,
             rotated_demand=rotated_demand,
             rotated_sun=rotated_sun,
             rotated_c_ele=rotated_c_ele,

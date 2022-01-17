@@ -3,10 +3,6 @@ class OptParamsAndResult:
             sp=None,
             normalize_rate=None,
             sche_times=None,
-            D_op=None,
-            Sun_op=None,
-            C_ele_op=None,
-            C_sun_op=None,
             rotated_demand=None,
             rotated_sun=None,
             rotated_c_ele=None,
@@ -17,10 +13,6 @@ class OptParamsAndResult:
         self._sp = sp
         self._normalize_rate = normalize_rate
         self._sche_times = sche_times
-        self._D_op = D_op
-        self._Sun_op = Sun_op
-        self._C_ele_op = C_ele_op
-        self._C_sun_op = C_sun_op
         self._rotated_demand = rotated_demand
         self._rotated_sun = rotated_sun
         self._rotated_c_ele = rotated_c_ele
@@ -36,18 +28,6 @@ class OptParamsAndResult:
 
     def set_sche_times(self, sche_times):
         self._sche_times = sche_times
-
-    def set_D_op(self, D_op):
-        self._D_op = D_op
-
-    def set_Sun_op(self, Sun_op):
-        self._Sun_op = Sun_op
-
-    def set_C_ele_op(self, C_ele_op):
-        self._C_ele_op = C_ele_op
-
-    def set_C_sun_op(self, C_sun_op):
-        self._C_sun_op = C_sun_op
 
     def set_rotated_demand(self, rotated_demand):
         self._rotated_demand = rotated_demand
@@ -78,22 +58,6 @@ class OptParamsAndResult:
     @property
     def sche_times(self):
         return self._sche_times
-
-    @property
-    def D_op(self):
-        return self._D_op
-
-    @property
-    def Sun_op(self):
-        return self._Sun_op
-
-    @property
-    def C_ele_op(self):
-        return self._C_ele_op
-
-    @property
-    def C_sun_op(self):
-        return self._C_sun_op
 
     @property
     def rotated_demand(self):
