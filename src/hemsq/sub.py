@@ -364,10 +364,31 @@ def plot_bar(ax, opr, barvalue, labels, colors, left=False):
     for i in range(len(df0)):
         ax.bar(step_labels, df0.iloc[i], width=width,
                align='edge', bottom=df0.iloc[:i].sum(), color=colors[i], label=labels[i])
-    
+
+def plot_bar_v2(ax, result, items, is_left=False):
+    barvalues = []
+    for item in items:
+        barvalues.append(result[item].data)
+    np_barvalues = np.array(barvalue)
+    ymax = max(np.sum(np_barvalues, axis=0))
+    ax.set_ylim(0, ymax + 10)
+    width = 0.3
+    if is_left:
+        width *= -1
+    for i, item in enumerate(items):
+        data = result[item]
+        ax.bar(result['x_ticks'], data.data, width=width,
+               align='edge', bottom=np.sum(np_barvalues[:i], axis=0),
+               color=data.color, label=data.name_with_tani)
+
 def plot_line(ax, opr, data, label, color):
     step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
     ax.plot(step_labels, data, color=color, alpha=1, label=label)
+
+def plot_line_v2(ax, result, item):
+    data = result[item]
+    ax.plot(result['x_ticks'], data.data,
+            color=data.color, label=data.name_with_tani, alpha=1)
 
 def plot_demand(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
@@ -388,6 +409,16 @@ def plot_demand(opr):
     set_ax(ax, 'Time', 'Electricity (W)')
     plt.show()
 
+def plot_demand_v2(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar_v2(ax, result, ['demand'], is_left=True)
+    plot_bar_v2(ax, result, ['sun_use', 'bat_out', 'ele_use'])
+    # グラフの設定
+    set_title(ax, 'Demand and Supply')
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    return fig, ax
+
 def plot_solar(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
     barvalue = list(itemgetter(0, 1, 2)(opr.output_sche))
@@ -407,6 +438,16 @@ def plot_solar(opr):
     set_ax(ax, 'Time', 'Electricity (W)')
     plt.show()
 
+def plot_solar_v2(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar_v2(ax, result, ['sun_gen'], is_left=True)
+    plot_bar_v2(ax, result, ['sun_use', 'sun_charge', 'sun_sell'])
+    # グラフの設定
+    set_title(ax, 'Balance of Solar Power')
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    return fig, ax
+
 def plot_cost_charge(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
     barvalue = list(itemgetter(1, 5)(opr.output_sche))
@@ -425,6 +466,16 @@ def plot_cost_charge(opr):
     set_legend(ax, ax_right=ax_right)
     plt.show()
 
+def plot_cost_charge_v2(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar_v2(ax, result, ['sun_charge', 'ele_charge'])
+    ax_right = ax.twinx()
+    plot_line_v2(ax_right, result, 'cost_ele')
+    # グラフの設定
+    set_title(ax, 'Balance of Solar Power')
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    return fig, ax
 
 def plot_cost_use(opr):
     fig, ax = plt.subplots(figsize=(6, 4.8))
@@ -445,6 +496,16 @@ def plot_cost_use(opr):
     set_legend(ax, ax_right=ax_right)
     plt.show()
 
+def plot_cost_use_v2(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar_v2(ax, result, ['sun_use', 'ele_use', 'bat_out'])
+    ax_right = ax.twinx()
+    plot_line_v2(ax_right, result, 'cost_ele')
+    # グラフの設定
+    set_title(ax, 'Commercial Electricity and Use of Electricity')
+    set_legend(ax)
+    set_ax(ax, 'Time', 'Electricity (W)')
+    return fig, ax
 
 #予測モデル型の場合の出力
 def output(opr):

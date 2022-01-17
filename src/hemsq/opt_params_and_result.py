@@ -46,8 +46,10 @@ def make_result(
         ele_charge_list,
         bat_list,
     ):
+    x_ticks = [str((i+sp.start_time) % 24) for i in list(range(sp.output_len))]
     return {
         'sp': sp,
+        'x_ticks': x_ticks,
         'demand':
             Data('Demand', demand_list, 'W', 'gray'),
         'sun_gen':

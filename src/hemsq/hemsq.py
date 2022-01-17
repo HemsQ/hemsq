@@ -281,3 +281,17 @@ class HemsQ:
         self.show_solar(result=opr)
         self.show_cost_and_charge(result=opr)
         self.show_cost_and_use(result=opr)
+
+    def show_all_v2(self, result=None):
+        r = self._results[-1]
+        if result:
+            r = result
+        plot_demand_v2(r)
+        plt.show()
+        plot_solar_v2(r)
+        plt.show()
+        plot_cost_charge_v2(r)
+        plt.show()
+        plot_cost_use_v2(r)
+        plt.show()
+        plt.show()
