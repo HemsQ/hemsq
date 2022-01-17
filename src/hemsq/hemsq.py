@@ -198,7 +198,11 @@ class HemsQ:
         print('Done!')
 
         # 結果とパラメタ OptParamsAndResult の保存
-        opr = OptParamsAndResult(
+        output_sche = make_output_sche(result_sche, sche_times)
+        unitdoubled_output_sche = unitDouble(output_sche, sp.unit)
+        postprocessed_output_sche =\
+            post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
+        self._oprs.append(OptParamsAndResult(
             sp=copy.copy(sp),
             normalize_rate=normalize_rate,
             sche_times=sche_times,
@@ -206,14 +210,8 @@ class HemsQ:
             rotated_sun=rotated_sun,
             rotated_c_ele=rotated_c_ele,
             rotated_c_sun=rotated_c_sun,
-            result_sche=result_sche,
-        )
-        merge_sche(opr)
-        unitdoubled_output_sche = unitDouble(opr.output_sche, sp.unit)
-        postprocessed_output_sche =\
-            post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
-        opr.set_output_sche(postprocessed_output_sche)
-        self._oprs.append(opr)
+            output_sche=postprocessed_output_sche,
+        ))
 
     def show_cost(self, result=None):
         opr = self._oprs[-1]

@@ -7,7 +7,6 @@ class OptParamsAndResult:
             rotated_sun=None,
             rotated_c_ele=None,
             rotated_c_sun=None,
-            result_sche=None,
             output_sche=None,
         ):
         self._sp = sp
@@ -17,7 +16,6 @@ class OptParamsAndResult:
         self._rotated_sun = rotated_sun
         self._rotated_c_ele = rotated_c_ele
         self._rotated_c_sun = rotated_c_sun
-        self._result_sche = result_sche
         self._output_sche = output_sche
 
     def set_sp(self, sp):
@@ -40,9 +38,6 @@ class OptParamsAndResult:
 
     def set_rotated_c_sun(self, rotated_c_sun):
         self._rotated_c_sun = rotated_c_sun
-
-    def set_result_sche(self, result_sche):
-        self._result_sche = result_sche
 
     def set_output_sche(self, output_sche):
         self._output_sche = output_sche
@@ -74,10 +69,6 @@ class OptParamsAndResult:
     @property
     def rotated_c_sun(self):
         return self._rotated_c_sun
-
-    @property
-    def result_sche(self):
-        return self._result_sche
 
     @property
     def output_sche(self):

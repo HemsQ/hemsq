@@ -454,16 +454,15 @@ def output(opr):
     make2Table(opr)
 
 
-def merge_sche(opr):
+def make_output_sche(result_sche, sche_times):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
-        a = [opr.result_sche[i][k] for i in range(opr.sche_times)]
+        a = [result_sche[i][k] for i in range(sche_times)]
         b = []
-        for i in range(opr.sche_times):
+        for i in range(sche_times):
             b += a[i]
         output_sche.append(b)
-    opr.set_output_sche(output_sche)
     return output_sche
 
 
