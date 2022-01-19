@@ -273,22 +273,34 @@ def makeTable(start, data, labels, mode, output_len):
               rowLabels=df.index, loc=loc, fontsize=15)
     plt.show()
 
-def plot_table(ax, result, items):
-    step_lables = list(map(lambda x: x + ':00', result['x_ticks']))
-    df = pd.DataFrame(columns=step_lables)
+def table_df(result, items):
+    step_labels = list(map(lambda x: x + ':00', result['x_ticks']))
+    df = pd.DataFrame(columns=step_labels)
     for item in items:
         data = result[item]
-        df.loc[data.name_with_tani] = pd.Series(data.data, dtype=data.dtype)
-    ax.axis('off')
-    ax.table(cellText=df.values, colLabels=df.columns,
-             rowLabels=df.index, fontsize=15)
+        df.loc[data.name_with_tani] =\
+            pd.Series(data.data, index=step_labels, dtype=data.dtype)
+    return df
 
-def make_all_table(result, figsize=None):
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(2, 1, 1)
-    items = ['demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
-             'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge',
-             'bat']
+def plot_table(ax, result, items):
+    df = table_df(result, items)
+    ax.axis('off')
+    ax.table(
+        cellText=df.values, colLabels=df.columns,
+        rowLabels=df.index, fontsize=15)
+
+def make_all_table_df(result):
+    items = [
+        'demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
+        'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge', 'bat']
+    return table_df(result, items)
+
+def make_all_table_fig(result):
+    fig = plt.figure(dpi=200)
+    ax = fig.add_subplot(20, 1, 1)
+    items = [
+        'demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
+        'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge', 'bat']
     plot_table(ax, result, items)
     return fig, ax
 

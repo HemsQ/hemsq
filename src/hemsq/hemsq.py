@@ -242,15 +242,20 @@ class HemsQ:
             opr = result
         make2Table(opr)
 
-    def all_table(self, result=None):
+    def all_table_fig(self, result=None):
         if result == None:
             result = self._results[-1]
-        return make_all_table(result)
+        return make_all_table_fig(result)
+
+    def all_table_df(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return make_all_table_df(result)
 
     def show_all_schedule(self, result=None):
         if result == None:
             result = self._results[-1]
-        fig, ax = self.all_table(result=result)
+        fig, ax = self.all_table_fig(result=result)
         plt.show()
 
     def demand_graph(self, result=None):
