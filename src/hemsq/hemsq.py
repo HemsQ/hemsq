@@ -9,7 +9,7 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
-from .opt_params_and_result import OptParamsAndResult, make_result
+from .result import make_result
 from .sub import *
 
 class HemsQ:
@@ -21,8 +21,7 @@ class HemsQ:
         self._sp = SituationParams()
         # マシンのクライアント
         self._client = None
-        # 結果とそのときのパラメタを格納する OptParamsAndResult のリスト
-        self._oprs = []
+        # 結果を格納するリスト
         self._results = []
 
     def set_params(self,
@@ -88,10 +87,6 @@ class HemsQ:
     @property
     def params(self):
         return self._sp.all_params
-
-    @property
-    def all_params_and_result(self):
-        return self._oprs
 
     def set_client(self, client):
         """
@@ -198,20 +193,11 @@ class HemsQ:
                 break
         print('Done!')
 
-        # 結果とパラメタ OptParamsAndResult の保存
+        # 結果の保存
         output_sche = make_output_sche(result_sche, sche_times)
         unitdoubled_output_sche = unitDouble(output_sche, sp.unit)
         postprocessed_output_sche =\
             post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
-        self._oprs.append(OptParamsAndResult(
-            sp=copy.copy(sp),
-            normalize_rate=normalize_rate,
-            rotated_demand=rotated_demand,
-            rotated_sun=rotated_sun,
-            rotated_c_ele=rotated_c_ele,
-            rotated_c_sun=rotated_c_sun,
-            output_sche=postprocessed_output_sche,
-        ))
         result = make_result(
             sp,
             rotated_demand,
@@ -228,19 +214,12 @@ class HemsQ:
         )
         self._results.append(result)
 
-    def show_cost(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        costPrint(opr)
-
     def cost_dict(self, result=None):
         if result == None:
             result = self._results[-1]
         return cost(result)
 
-    def show_cost_v2(self, result=None):
+    def show_cost(self, result=None):
         if result == None:
             result = self._results[-1]
         val = self.cost_dict(result)
@@ -313,16 +292,9 @@ class HemsQ:
         plt.show()
 
     def show_all(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        self.show_cost(result=opr)
-
-    def show_all_v2(self, result=None):
         if result == None:
             result = self._results[-1]
-        self.show_cost_v2(result=result)
+        self.show_cost(result=result)
         self.show_all_schedule(result=result)
         self.show_demand(result=result)
         self.show_solar(result=result)

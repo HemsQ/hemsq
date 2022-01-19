@@ -284,28 +284,6 @@ def make_all_table_fig(result):
     plot_table(ax, result, items)
     return fig, ax
 
-#最適解でかかった経費コストを計上してプリント出力する
-def costPrint(opr):
-    array = np.array(opr.output_sche)
-    cost = 0 # コストの合計
-    e_cost = 0
-    for t in range(opr.sp.output_len):
-        # 商用電源使用は4行目
-        from_ele = array[4][t] + array[5][t]
-        cost += from_ele * opr.rotated_c_ele[t]
-        e_cost += from_ele
-        # 太陽光売電は2行目
-        cost -= array[2][t] * opr.rotated_c_sun[t]
-    # コスト正なら
-    if cost >= 0:
-        print("Cost:", cost, "(yen)")
-    # 負なら
-    else:
-        print("Sales: ", -cost, "(yen)")
-    # CO2排出量（0.445kg/kWh)
-    CO2 = my_round(0.445 * e_cost / 1000, 1)
-    print("CO2 Emissions:", CO2, "kg")
-
 def cost(result):
     r = result
     cost = 0
