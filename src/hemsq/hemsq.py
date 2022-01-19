@@ -242,7 +242,6 @@ class HemsQ:
             opr = result
         make2Table(opr)
 
-    @property
     def demand_graph(self, result=None):
         if result == None:
             result = self._results[-1]
@@ -254,7 +253,6 @@ class HemsQ:
         fig, ax = self.demand_graph(result=result)
         plt.show()
 
-    @property
     def solar_graph(self, result=None):
         if result == None:
             result = self._results[-1]
@@ -266,7 +264,6 @@ class HemsQ:
         fig, ax = self.solar_graph(result=result)
         plt.show()
 
-    @property
     def cost_and_charge_graph(self, result=None):
         if result == None:
             result = self._results[-1]
@@ -278,7 +275,6 @@ class HemsQ:
         fig, ax = self.cost_and_charge_graph(result=result)
         plt.show()
 
-    @property
     def cost_and_use_graph(self, result=None):
         if result == None:
             result = self._results[-1]
