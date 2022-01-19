@@ -312,7 +312,7 @@ def cost(result):
     e_cost = 0
     for t in range(r['sp'].output_len):
         # 商用電源の使用と充電の分を全コストに追加
-        from_ele = r['sun_use'].data[t] + r['sun_charge'].data[t]
+        from_ele = r['ele_use'].data[t] + r['ele_charge'].data[t]
         cost += from_ele * r['cost_ele'].data[t]
         e_cost += from_ele
         # 太陽光売電分をコストから差し引く
