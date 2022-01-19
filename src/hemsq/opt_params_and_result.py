@@ -4,12 +4,14 @@ class Data:
             data,
             tani,
             color,
+            dtype='int64',
         ):
         self._name = name
         self._data = data
         self._tani = tani
         self._color = color
         self._name_with_tani = '{} ({})'.format(name, tani)
+        self._dtype = dtype
 
     @property
     def name(self):
@@ -30,6 +32,10 @@ class Data:
     @property
     def name_with_tani(self):
         return self._name_with_tani
+
+    @property
+    def dtype(self):
+        return self._dtype
 
 
 def make_result(
@@ -55,9 +61,11 @@ def make_result(
         'sun_gen':
             Data('Solar Power Generation', sun_gen_list, 'W', 'lightgray'),
         'cost_ele':
-            Data('Commercial Electricity Prices', cost_ele_list, 'yen/W', 'midnightblue'),
+            Data('Commercial Electricity Prices', cost_ele_list, 'yen/W',
+                 'midnightblue', dtype='float64'),
         'sun_sell_price':
-            Data('Solar-Sell Prices', sun_sell_price_list, 'yen/W', ''),
+            Data('Solar-Sell Prices', sun_sell_price_list, 'yen/W', '',
+                 dtype='float64'),
         'sun_use':
             Data('Use of Solar Power', sun_use_list, 'W', 'coral'),
         'sun_charge':
@@ -65,11 +73,14 @@ def make_result(
         'sun_sell':
             Data('Sales of Solar Power', sun_sell_list, 'W', 'aqua'),
         'bat_out':
-            Data('Use of Battery Electricity', bat_out_list, 'W', 'deepskyblue'),
+            Data('Use of Battery Electricity', bat_out_list, 'W',
+                 'deepskyblue'),
         'ele_use':
-            Data('Use of Commercial Electricity', ele_use_list, 'W', 'limegreen'),
+            Data('Use of Commercial Electricity', ele_use_list, 'W',
+                 'limegreen'),
         'ele_charge':
-            Data('Charge of Commercial Electricity', ele_charge_list, 'W', 'pink'),
+            Data('Charge of Commercial Electricity', ele_charge_list, 'W',
+                 'pink'),
         'bat':
             Data('Remaining amount of Battery', bat_list, 'W', 'mediumpurple'),
     }

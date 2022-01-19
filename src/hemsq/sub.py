@@ -273,7 +273,25 @@ def makeTable(start, data, labels, mode, output_len):
               rowLabels=df.index, loc=loc, fontsize=15)
     plt.show()
 
-    
+def plot_table(ax, result, items):
+    step_lables = list(map(lambda x: x + ':00', result['x_ticks']))
+    df = pd.DataFrame(columns=step_lables)
+    for item in items:
+        data = result[item]
+        df.loc[data.name_with_tani] = pd.Series(data.data, dtype=data.dtype)
+    ax.axis('off')
+    ax.table(cellText=df.values, colLabels=df.columns,
+             rowLabels=df.index, fontsize=15)
+
+def make_all_table(result, figsize=None):
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(2, 1, 1)
+    items = ['demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
+             'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge',
+             'bat']
+    plot_table(ax, result, items)
+    return fig, ax
+
 def make2Table(opr):
     # demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
     # sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
