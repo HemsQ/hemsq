@@ -224,7 +224,7 @@ class HemsQ:
             postprocessed_output_sche[3],
             postprocessed_output_sche[4],
             postprocessed_output_sche[5],
-            postprocessed_output_sche[6],
+            list(map(lambda x: my_round(x), postprocessed_output_sche[6])),
         )
         self._results.append(result)
 

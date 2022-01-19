@@ -277,7 +277,6 @@ def plot_table(ax, result, items):
     step_lables = list(map(lambda x: x + ':00', result['x_ticks']))
     df = pd.DataFrame(columns=step_lables)
     for item in items:
-        print(item)
         data = result[item]
         df.loc[data.name_with_tani] = pd.Series(data.data, dtype=data.dtype)
     ax.axis('off')
