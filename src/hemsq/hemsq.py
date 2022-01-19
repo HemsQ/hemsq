@@ -235,13 +235,6 @@ class HemsQ:
             opr = result
         costPrint(opr)
 
-    def show_schedule(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        make2Table(opr)
-
     def all_table_fig(self, result=None):
         if result == None:
             result = self._results[-1]
@@ -308,7 +301,6 @@ class HemsQ:
             assert isinstance(result, OptParamsAndResult)
             opr = result
         self.show_cost(result=opr)
-        self.show_schedule(result=opr)
 
     def show_all_v2(self, result=None):
         if result == None:

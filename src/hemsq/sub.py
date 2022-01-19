@@ -253,26 +253,6 @@ def unitDouble(schedule, unit):
     array *= unit
     return (array.T).tolist()
 
-
-#表を作る
-def makeTable(start, data, labels, mode, output_len):
-    if mode == 0:
-        loc = 'lower center'
-        data_name = 'input'
-    else:
-        loc = 'upper center'
-        data_name = 'output'
-    step_labels = [str((i+start)%24)+':00' for i in list(range(output_len))]  
-    fig = plt.figure(dpi=200)    
-    ax1 = fig.add_subplot(2, 1, 1)
-    df0 = pd.DataFrame(data, index=labels, columns=step_labels)
-    df0.applymap(my_round)
-    df = df0.astype('int64')
-    ax1.axis('off')
-    ax1.table(cellText=df.values, colLabels=df.columns,
-              rowLabels=df.index, loc=loc, fontsize=15)
-    plt.show()
-
 def table_df(result, items):
     step_labels = list(map(lambda x: x + ':00', result['x_ticks']))
     df = pd.DataFrame(columns=step_labels)
@@ -303,30 +283,6 @@ def make_all_table_fig(result):
         'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge', 'bat']
     plot_table(ax, result, items)
     return fig, ax
-
-def make2Table(opr):
-    # demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
-    # sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
-    # cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
-    demand = opr.rotated_demand
-    sun = opr.rotated_sun
-    cost = opr.rotated_c_ele
-    label = [
-        "Demand (w)",
-        "Solar Power Generation (w)",
-        "Commercial Electricity Prices (yen)",
-    ]
-    makeTable(opr.sp.start_time, [demand, sun, cost], label, 0, opr.sp.output_len)
-    label = [
-        "Use of Solar Power (w)",
-        "Charge of Solar Power (w)",
-        "Sales of Solar Power (w)",
-        "Use of Battery Electricity (w)",
-        "Use of Commercial Electricity (w)",
-        "Charge of Commercial Electricity (w)",
-        "Remaining amount of Battery (w)",
-    ]
-    makeTable(opr.sp.start_time, opr.output_sche, label, 1, opr.sp.output_len)  
 
 #最適解でかかった経費コストを計上してプリント出力する
 def costPrint(opr):
