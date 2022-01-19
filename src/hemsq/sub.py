@@ -306,6 +306,21 @@ def costPrint(opr):
     CO2 = my_round(0.445 * e_cost / 1000, 1)
     print("CO2 Emissions:", CO2, "kg")
 
+def cost(result):
+    r = result
+    cost = 0
+    e_cost = 0
+    for t in range(r['sp'].output_len):
+        # 商用電源の使用と充電の分を全コストに追加
+        from_ele = r['sun_use'][t] + r['sun_charge'][t]
+        cost += from_ele * r['cost_ele'][t]
+        e_cost += from_ele
+        # 太陽光売電分をコストから差し引く
+        cost -= r['sun_sell'][t] * r['sun_sell_price'][t]
+    return {
+        'cost': cost,
+        'CO2': my_round(0.445 * e_cost / 1000, 1),
+    }
 
 def set_title(ax, title):
     ax.set_title(title, fontsize=20)

@@ -235,6 +235,23 @@ class HemsQ:
             opr = result
         costPrint(opr)
 
+    def cost_dict(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return cost(result)
+
+    def show_cost_v2(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        val = self.cost_dict(result)
+        # コスト
+        if val['cost'] >= 0:
+            print("Cost:", val['cost'], "(yen)")
+        else:
+            print("Sales: ", -val['cost'], "(yen)")
+        # CO2排出量（0.445kg/kWh)
+        print("CO2 Emissions:", val['CO2'], "kg")
+
     def all_table_fig(self, result=None):
         if result == None:
             result = self._results[-1]
@@ -305,6 +322,7 @@ class HemsQ:
     def show_all_v2(self, result=None):
         if result == None:
             result = self._results[-1]
+        self.show_cost_v2(result=result)
         self.show_all_schedule(result=result)
         self.show_demand(result=result)
         self.show_solar(result=result)
