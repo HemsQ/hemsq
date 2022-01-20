@@ -21,7 +21,7 @@ def cost_term(step, total, komoku, cost_ratio,
                 poly += q1[k1] * C_env * (1 - cost_ratio)
             #項目iが光売電
             elif komoku[i][2]=='sell':
-                poly += q1[k1] * (C_sun[t]-C_min) / bunbo * cost_ratio * conv_eff
+                poly -= q1[k1] * (C_sun[t]-C_min) / bunbo * cost_ratio * conv_eff
     return poly
 
 
