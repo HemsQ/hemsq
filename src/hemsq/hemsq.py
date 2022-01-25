@@ -131,7 +131,7 @@ class HemsQ:
             weight_lst = [] #パラメタ調整用(w_p,w_ineq1,w_ineq2）
             all_sche = [] #パラメタ調整用(制約を破る・破らないに関わらず全てのスケジュールをここに入れる）
             if t != 0:
-                B_0 = result_sche[t-1][-1][-1]#前のスケジュール作成の時の蓄電量    
+                B_0 = int(my_round(result_sche[t-1][-1][-1])) #前のスケジュール作成の時の蓄電量
             resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
             #入力（太陽光・需要・料金）について組み直し開始時間からstep時間分だけ用意する    
             start = resche_start % 24

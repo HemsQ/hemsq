@@ -162,7 +162,7 @@ def makeSchedule(opt_result, step, total, komoku, B_0, eta):
                             do['ele_in'] += 1
                             do['bat'] += 1
         schedule[t] = list(do.values())
-        B = int(do['bat'] * (1 - eta))
+        B = do['bat'] * (1 - eta)
     #表作成の時のために転置しておく
     schedule = [list(x) for x in zip(*schedule)]
     return schedule
@@ -249,9 +249,10 @@ def constraint(schedule, Sun, D, B_max, satisfied):
 
 #項目の電力単位にする
 def unitDouble(schedule, unit):
-    array = np.array(schedule).T
+    array = np.array(schedule)
     array *= unit
-    return (array.T).tolist()
+    array = array.astype('int64')
+    return array.tolist()
 
 def table_df(result, items):
     step_labels = list(map(lambda x: x + ':00', result['x_ticks']))
@@ -267,6 +268,7 @@ def plot_table(ax, result, items):
     ax.axis('off')
     ax.table(
         cellText=df.values, colLabels=df.columns,
+        colWidths=[0.1 for i in range(result['sp'].output_len + 1)],
         rowLabels=df.index, fontsize=15)
 
 def make_all_table_df(result):
