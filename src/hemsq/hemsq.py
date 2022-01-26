@@ -195,6 +195,7 @@ class HemsQ:
             for w in self._weight_store.weights(machine):
                 broken_list = solve_internal(w, machine)
                 if not broken_list:
+                    result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])
                     was_solved = True
                     break
 
