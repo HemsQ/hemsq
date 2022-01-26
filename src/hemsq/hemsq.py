@@ -193,7 +193,7 @@ class HemsQ:
 
             was_solved = False
             for w in self._weight_store.weights(machine):
-                broken_list = solve_internal(w)
+                broken_list = solve_internal(w, machine)
                 if not broken_list:
                     was_solved = True
                     break
