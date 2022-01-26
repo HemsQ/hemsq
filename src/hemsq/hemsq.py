@@ -189,11 +189,11 @@ class HemsQ:
                 schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0, sp.eta) 
                 #破った制約を追加する
                 broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
-                return broken_lst
+                return schedule, broken_lst
 
             was_solved = False
             for w in self._weight_store.weights(machine):
-                broken_list = solve_internal(w, machine)
+                schedule, broken_list = solve_internal(w, machine)
                 if not broken_list:
                     result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])
                     was_solved = True
