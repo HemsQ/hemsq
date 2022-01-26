@@ -108,7 +108,7 @@ def B_t_poly(time, B_0, step, total, b_in, b_out, q):
 
 
 #不等式制約項
-def ineq(q1, q2, q3, step, total, komoku, eta, b_in, b_out, B_max, B_0, y_n):
+def ineq(q1, q2, step, total, komoku, eta, b_in, b_out, B_max, B_0, y_n):
     #B(t)を計算
     def B_t_poly(time, B_0):
         poly = B_0
@@ -139,8 +139,7 @@ def ineq(q1, q2, q3, step, total, komoku, eta, b_in, b_out, B_max, B_0, y_n):
 
     #poly1はB(t)=<B_max
     #poly2は0=<B(t)を表す
-    poly1, poly2 = 0, 0
+    poly1 = 0
     for t in range(1, step+1):
         poly1 += (B_max - B_t_poly(t,B_0) - slack_poly(t,q2))**2
-        poly2 += (-B_t_poly(t,B_0) + slack_poly(t,q3))**2
-    return poly1, poly2
+    return poly1

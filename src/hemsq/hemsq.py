@@ -145,7 +145,6 @@ class HemsQ:
             gen = BinarySymbolGenerator()  # BinaryPoly の変数ジェネレータを宣言
             q1 = gen.array(total * sp.step)  # 決定変数xの Binary 配列を生成
             q2 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
-            q3 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
             #使わない変数を固定
             fix_lst = disuse(komoku_grp, B_0, B_max, D_t, sp.step, [])
             for i in fix_lst:
@@ -155,13 +154,13 @@ class HemsQ:
                              sp.conv_eff, C_ele_t, C_sun_t, sp.c_env, q1)
             p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
                             sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
-            ineq1, ineq2 = mqa.ineq(q1, q2, q3, sp.step, total, komoku,\
+            ineq1 = mqa.ineq(q1, q2, sp.step, total, komoku,\
                                     sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
             for w_p in np.arange(4.0, 2.5, -0.1): #制約項の重み
                 for w_ineq2 in np.arange(1.1, 1.6, 0.1): #0<=B(t)の重み
                     for w_ineq1 in np.arange(1.1, 1.6, 0.1): #B(t)<=B_max
                         #多項式を重みをかけて足し合わす
-                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1 + ineq2 * w_ineq2
+                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1
                         # ソルバの実行
                         solver = Solver(self._client)
                         result = solver.solve(Q)
@@ -169,7 +168,7 @@ class HemsQ:
                         for solution in result:
                             sample = solution.values
                             break
-                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[0:len(q1)-len(fix_lst)])
+                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
                         #一つの項目が割り当てられる時間は一枠・opt_result取得
                         alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
                         #組み直し時間までの結果
