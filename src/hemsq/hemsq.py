@@ -9,7 +9,7 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
-from .opt_params_and_result import OptParamsAndResult
+from .result import make_result
 from .sub import *
 
 class HemsQ:
@@ -21,8 +21,8 @@ class HemsQ:
         self._sp = SituationParams()
         # マシンのクライアント
         self._client = None
-        # 結果とそのときのパラメタを格納する OptParamsAndResult のリスト
-        self._oprs = []
+        # 結果を格納するリスト
+        self._results = []
 
     def set_params(self,
             unit=None,
@@ -88,10 +88,6 @@ class HemsQ:
     def params(self):
         return self._sp.all_params
 
-    @property
-    def all_params_and_result(self):
-        return self._oprs
-
     def set_client(self, client):
         """
         マシンの Client を設定する.
@@ -121,10 +117,6 @@ class HemsQ:
         # 出力するデータの作成
         start = sp.start_time
         end = sp.start_time + sp.output_len - 1
-        D_op = rotate(start, end, D_all)
-        Sun_op = rotate(start, end, Sun_all)
-        C_ele_op = rotate(start, end, C_ele_all)
-        C_sun_op = rotate(start, end, C_sun_all)
         rotated_demand = rotate(start, end, sp.demand)
         rotated_sun = rotate(start, end, solar_by_weather)
         rotated_c_ele = rotate(start, end, sp.ele_prices)
@@ -139,7 +131,7 @@ class HemsQ:
             weight_lst = [] #パラメタ調整用(w_p,w_ineq1,w_ineq2）
             all_sche = [] #パラメタ調整用(制約を破る・破らないに関わらず全てのスケジュールをここに入れる）
             if t != 0:
-                B_0 = result_sche[t-1][-1][-1]#前のスケジュール作成の時の蓄電量    
+                B_0 = int(my_round(result_sche[t-1][-1][-1])) #前のスケジュール作成の時の蓄電量
             resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
             #入力（太陽光・需要・料金）について組み直し開始時間からstep時間分だけ用意する    
             start = resche_start % 24
@@ -153,7 +145,6 @@ class HemsQ:
             gen = BinarySymbolGenerator()  # BinaryPoly の変数ジェネレータを宣言
             q1 = gen.array(total * sp.step)  # 決定変数xの Binary 配列を生成
             q2 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
-            q3 = gen.array(y_n * sp.step)  # スラック変数yの Binary 配列を生成
             #使わない変数を固定
             fix_lst = disuse(komoku_grp, B_0, B_max, D_t, sp.step, [])
             for i in fix_lst:
@@ -163,13 +154,13 @@ class HemsQ:
                              sp.conv_eff, C_ele_t, C_sun_t, sp.c_env, q1)
             p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
                             sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
-            ineq1, ineq2 = mqa.ineq(q1, q2, q3, sp.step, total, komoku,\
+            ineq1 = mqa.ineq(q1, q2, sp.step, total, komoku,\
                                     sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
             for w_p in np.arange(4.0, 2.5, -0.1): #制約項の重み
                 for w_ineq2 in np.arange(1.1, 1.6, 0.1): #0<=B(t)の重み
                     for w_ineq1 in np.arange(1.1, 1.6, 0.1): #B(t)<=B_max
                         #多項式を重みをかけて足し合わす
-                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1 + ineq2 * w_ineq2
+                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1
                         # ソルバの実行
                         solver = Solver(self._client)
                         result = solver.solve(Q)
@@ -177,7 +168,7 @@ class HemsQ:
                         for solution in result:
                             sample = solution.values
                             break
-                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[0:len(q1)-len(fix_lst)])
+                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
                         #一つの項目が割り当てられる時間は一枠・opt_result取得
                         alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
                         #組み直し時間までの結果
@@ -201,82 +192,110 @@ class HemsQ:
                 break
         print('Done!')
 
-        # 結果とパラメタ OptParamsAndResult の保存
-        opr = OptParamsAndResult(
-            sp=copy.copy(sp),
-            normalize_rate=normalize_rate,
-            sche_times=sche_times,
-            D_all=D_all,
-            Sun_all=Sun_all,
-            C_ele_all=C_ele_all,
-            C_sun_all=C_sun_all,
-            D_op=D_op,
-            Sun_op=Sun_op,
-            C_ele_op=C_ele_op,
-            C_sun_op=C_sun_op,
-            rotated_demand=rotated_demand,
-            rotated_sun=rotated_sun,
-            rotated_c_ele=rotated_c_ele,
-            rotated_c_sun=rotated_c_sun,
-            result_sche=result_sche,
-        )
-        merge_sche(opr)
-        unitdoubled_output_sche = unitDouble(opr.output_sche, sp.unit)
+        # 結果の保存
+        output_sche = make_output_sche(result_sche, sche_times)
+        unitdoubled_output_sche = unitDouble(output_sche, sp.unit)
         postprocessed_output_sche =\
             post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
-        opr.set_output_sche(postprocessed_output_sche)
-        self._oprs.append(opr)
+        result = make_result(
+            sp,
+            rotated_demand,
+            rotated_sun,
+            rotated_c_ele,
+            rotated_c_sun,
+            postprocessed_output_sche[0],
+            postprocessed_output_sche[1],
+            postprocessed_output_sche[2],
+            postprocessed_output_sche[3],
+            postprocessed_output_sche[4],
+            postprocessed_output_sche[5],
+            list(map(lambda x: my_round(x), postprocessed_output_sche[6])),
+        )
+        self._results.append(result)
+
+    def cost_dict(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return cost(result)
 
     def show_cost(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        costPrint(opr)
+        if result == None:
+            result = self._results[-1]
+        val = self.cost_dict(result)
+        # コスト
+        if val['cost'] >= 0:
+            print("Cost:", val['cost'], "(yen)")
+        else:
+            print("Sales: ", -val['cost'], "(yen)")
+        # CO2排出量（0.445kg/kWh)
+        print("CO2 Emissions:", val['CO2'], "kg")
 
-    def show_schedule(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        make2Table(opr)
+    def all_table_fig(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return make_all_table_fig(result)
+
+    def all_table_df(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return make_all_table_df(result)
+
+    def show_all_schedule(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.all_table_fig(result=result)
+        plt.show()
+
+    def demand_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_demand(result)
 
     def show_demand(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_demand(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.demand_graph(result=result)
+        plt.show()
+
+    def solar_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_solar(result)
 
     def show_solar(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_solar(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.solar_graph(result=result)
+        plt.show()
+
+    def cost_and_charge_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_cost_charge(result)
 
     def show_cost_and_charge(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_cost_charge(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.cost_and_charge_graph(result=result)
+        plt.show()
+
+    def cost_and_use_graph(self, result=None):
+        if result == None:
+            result = self._results[-1]
+        return plot_cost_use(result)
 
     def show_cost_and_use(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        plot_cost_use(opr)
+        if result == None:
+            result = self._results[-1]
+        fig, ax = self.cost_and_use_graph(result=result)
+        plt.show()
 
     def show_all(self, result=None):
-        opr = self._oprs[-1]
-        if result:
-            assert isinstance(result, OptParamsAndResult)
-            opr = result
-        self.show_cost(result=opr)
-        self.show_schedule(result=opr)
-        self.show_demand(result=opr)
-        self.show_solar(result=opr)
-        self.show_cost_and_charge(result=opr)
-        self.show_cost_and_use(result=opr)
+        if result == None:
+            result = self._results[-1]
+        self.show_cost(result=result)
+        self.show_all_schedule(result=result)
+        self.show_demand(result=result)
+        self.show_solar(result=result)
+        self.show_cost_and_charge(result=result)
+        self.show_cost_and_use(result=result)

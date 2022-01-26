@@ -162,7 +162,7 @@ def makeSchedule(opt_result, step, total, komoku, B_0, eta):
                             do['ele_in'] += 1
                             do['bat'] += 1
         schedule[t] = list(do.values())
-        B = int(do['bat'] * (1 - eta))
+        B = do['bat'] * (1 - eta)
     #表作成の時のために転置しておく
     schedule = [list(x) for x in zip(*schedule)]
     return schedule
@@ -249,77 +249,58 @@ def constraint(schedule, Sun, D, B_max, satisfied):
 
 #項目の電力単位にする
 def unitDouble(schedule, unit):
-    array = np.array(schedule).T
+    array = np.array(schedule)
     array *= unit
-    return (array.T).tolist()
+    array = array.astype('int64')
+    return array.tolist()
 
+def table_df(result, items):
+    step_labels = list(map(lambda x: x + ':00', result['x_ticks']))
+    df = pd.DataFrame(columns=step_labels)
+    for item in items:
+        data = result[item]
+        df.loc[data.name_with_tani] =\
+            pd.Series(data.data, index=step_labels, dtype=data.dtype)
+    return df
 
-#表を作る
-def makeTable(start, data, labels, mode, output_len):
-    if mode == 0:
-        loc = 'lower center'
-        data_name = 'input'
-    else:
-        loc = 'upper center'
-        data_name = 'output'
-    step_labels = [str((i+start)%24)+':00' for i in list(range(output_len))]  
-    fig = plt.figure(dpi=200)    
-    ax1 = fig.add_subplot(2, 1, 1)
-    df0 = pd.DataFrame(data, index=labels, columns=step_labels)
-    df0.applymap(my_round)
-    df = df0.astype('int64')
-    ax1.axis('off')
-    ax1.table(cellText=df.values, colLabels=df.columns,
-              rowLabels=df.index, loc=loc, fontsize=15)
-    plt.show()
+def plot_table(ax, result, items):
+    df = table_df(result, items)
+    ax.axis('off')
+    ax.table(
+        cellText=df.values, colLabels=df.columns,
+        colWidths=[0.1 for i in range(result['sp'].output_len + 1)],
+        rowLabels=df.index, fontsize=15)
 
-    
-def make2Table(opr):
-    # demand = list(map(int, normalize(opr.D_op[:opr.sp.output_len], opr.sp.unit)))
-    # sun = list(map(int, normalize(opr.Sun_op[:opr.sp.output_len], opr.sp.unit)))
-    # cost = list(map(int, normalize(opr.C_ele_op[:opr.sp.output_len], 1000/opr.normalize_rate/opr.sp.unit)))
-    demand = opr.rotated_demand
-    sun = opr.rotated_sun
-    cost = opr.rotated_c_ele
-    label = [
-        "Demand (w)",
-        "Solar Power Generation (w)",
-        "Commercial Electricity Prices (yen)",
-    ]
-    makeTable(opr.sp.start_time, [demand, sun, cost], label, 0, opr.sp.output_len)
-    label = [
-        "Use of Solar Power (w)",
-        "Charge of Solar Power (w)",
-        "Sales of Solar Power (w)",
-        "Use of Battery Electricity (w)",
-        "Use of Commercial Electricity (w)",
-        "Charge of Commercial Electricity (w)",
-        "Remaining amount of Battery (w)",
-    ]
-    makeTable(opr.sp.start_time, opr.output_sche, label, 1, opr.sp.output_len)  
+def make_all_table_df(result):
+    items = [
+        'demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
+        'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge', 'bat']
+    return table_df(result, items)
 
-#最適解でかかった経費コストを計上してプリント出力する
-def costPrint(opr):
-    array = np.array(opr.output_sche)
-    cost = 0 # コストの合計
+def make_all_table_fig(result):
+    fig = plt.figure(dpi=200)
+    ax = fig.add_subplot(20, 1, 1)
+    items = [
+        'demand', 'sun_gen', 'cost_ele', 'sun_sell_price', 'sun_use',
+        'sun_charge', 'sun_sell', 'bat_out', 'ele_use', 'ele_charge', 'bat']
+    plot_table(ax, result, items)
+    return fig, ax
+
+def cost(result):
+    r = result
+    cost = 0
     e_cost = 0
-    for t in range(opr.sp.output_len):
-        # 商用電源使用は4行目
-        from_ele = array[4][t] + array[5][t]
-        cost += from_ele * opr.rotated_c_ele[t]
+    for t in range(r['sp'].output_len):
+        # 商用電源の使用と充電の分を全コストに追加
+        from_ele = r['ele_use'].data[t] + r['ele_charge'].data[t]
+        cost += from_ele * r['cost_ele'].data[t]
         e_cost += from_ele
-        # 太陽光売電は2行目
-        cost -= array[2][t] * opr.rotated_c_sun[t]
-    # コスト正なら
-    if cost >= 0:
-        print("Cost:", cost, "(yen)")
-    # 負なら
-    else:
-        print("Sales: ", -cost, "(yen)")
-    # CO2排出量（0.445kg/kWh)
-    CO2 = my_round(0.445 * e_cost / 1000, 1)
-    print("CO2 Emissions:", CO2, "kg")
-
+        # 太陽光売電分をコストから差し引く
+        cost -= r['sun_sell'].data[t] * r['sun_sell_price'].data[t]
+    return {
+        'cost': cost,
+        'CO2': my_round(0.445 * e_cost / 1000, 1),
+    }
 
 def set_title(ax, title):
     ax.set_title(title, fontsize=20)
@@ -352,118 +333,79 @@ def set_y_ax_right(ax, name):
     y_min, y_max = ax.get_ylim()
     ax.set_ylim(y_min, y_max)
 
-def plot_bar(ax, opr, barvalue, labels, colors, left=False):
-    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
-    df0 = pd.DataFrame(barvalue)
-    ymax = max([sum([[barvalue[i][j] for i in range(len(barvalue))]\
-                     for j in range(opr.sp.output_len)][k]) for k in range(opr.sp.output_len)])
+def plot_bar(ax, result, items, is_left=False):
+    barvalues = []
+    for item in items:
+        barvalues.append(result[item].data)
+    np_barvalues = np.array(barvalues)
+    ymax = max(np.sum(np_barvalues, axis=0))
     ax.set_ylim(0, ymax + 10)
     width = 0.3
-    if left:
+    if is_left:
         width *= -1
-    for i in range(len(df0)):
-        ax.bar(step_labels, df0.iloc[i], width=width,
-               align='edge', bottom=df0.iloc[:i].sum(), color=colors[i], label=labels[i])
-    
-def plot_line(ax, opr, data, label, color):
-    step_labels = [str((i+opr.sp.start_time)%24) for i in list(range(opr.sp.output_len))]
-    ax.plot(step_labels, data, color=color, alpha=1, label=label)
+    for i, item in enumerate(items):
+        data = result[item]
+        ax.bar(result['x_ticks'], data.data, width=width,
+               align='edge', bottom=np.sum(np_barvalues[:i], axis=0),
+               color=data.color, label=data.name_with_tani)
 
-def plot_demand(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
-    title = "Demand and Supply"
-    labels = [
-        "Demand",
-        "Use of Solar Power",
-        "Use of Battery Electricity",
-        "Use of Commercial Electricity",
-    ]
-    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [opr.rotated_demand], labels[:1], colors[:1], left=True)
-    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
+def plot_line(ax, result, item):
+    data = result[item]
+    ax.plot(result['x_ticks'], data.data,
+            color=data.color, label=data.name_with_tani, alpha=1)
+
+def plot_demand(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar(ax, result, ['demand'], is_left=True)
+    plot_bar(ax, result, ['sun_use', 'bat_out', 'ele_use'])
     # グラフの設定
-    set_title(ax, title)
+    set_title(ax, 'Demand and Supply')
     set_legend(ax)
     set_ax(ax, 'Time', 'Electricity (W)')
-    plt.show()
+    return fig, ax
 
-def plot_solar(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 1, 2)(opr.output_sche))
-    title = "Balance of Solar Power"
-    labels = [
-        "Solar Power Generation",
-        "Use of Solar Power",
-        "Charge of Solar Power",
-        "Sales of Solar Power",
-    ]
-    colors = ['gray', 'orangered', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, [opr.rotated_sun], labels[:1], colors[:1], left=True)
-    plot_bar(ax, opr, barvalue, labels[1:], colors[1:], left=False)
+def plot_solar(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar(ax, result, ['sun_gen'], is_left=True)
+    plot_bar(ax, result, ['sun_use', 'sun_charge', 'sun_sell'])
     # グラフの設定
-    set_title(ax, title)
+    set_title(ax, 'Balance of Solar Power')
     set_legend(ax)
     set_ax(ax, 'Time', 'Electricity (W)')
-    plt.show()
+    return fig, ax
 
-def plot_cost_charge(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(1, 5)(opr.output_sche))
-    title = "Transition of Commercial Electricity and Charging"
-    labels = [
-        "Charge of Solar Power",
-        "Charge of Commercial Electricity",
-    ]
-    colors = ['orange', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, barvalue, labels, colors, left=False)
+def plot_cost_charge(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar(ax, result, ['sun_charge', 'ele_charge'])
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, result, 'cost_ele')
     # グラフの設定
-    set_title(ax, title)
-    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    set_title(ax, 'Balance of Solar Power')
     set_legend(ax, ax_right=ax_right)
-    plt.show()
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    return fig, ax
 
-
-def plot_cost_use(opr):
-    fig, ax = plt.subplots(figsize=(6, 4.8))
-    barvalue = list(itemgetter(0, 3, 4)(opr.output_sche))
-    title = "Transition of Commercial Electricity and Use of Electricity"
-    labels = [
-        "Use of Solar Power",
-        "Use of Commercial Electricity",
-        "Use of Battery Electricity",
-    ]
-    colors = ['orange', 'deepskyblue', 'limegreen']
-    plot_bar(ax, opr, barvalue, labels, colors, left=False)
+def plot_cost_use(result, figsize=(6, 4.8)):
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_bar(ax, result, ['sun_use', 'ele_use', 'bat_out'])
     ax_right = ax.twinx()
-    plot_line(ax_right, opr, opr.rotated_c_ele, 'Commercial Electricity Prices', 'r')
+    plot_line(ax_right, result, 'cost_ele')
     # グラフの設定
-    set_title(ax, title)
-    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    set_title(ax, 'Commercial Electricity and Use of Electricity')
     set_legend(ax, ax_right=ax_right)
-    plt.show()
+    set_ax(ax, 'Time', 'Electricity (W)', ax_right=ax_right, ylabel_right='Prices (yen)')
+    return fig, ax
 
 
-#予測モデル型の場合の出力
-def output(opr):
-    #値段表示
-    costPrint(opr)
-    #表表示
-    make2Table(opr)
-
-
-def merge_sche(opr):
+def make_output_sche(result_sche, sche_times):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
-        a = [opr.result_sche[i][k] for i in range(opr.sche_times)]
+        a = [result_sche[i][k] for i in range(sche_times)]
         b = []
-        for i in range(opr.sche_times):
+        for i in range(sche_times):
             b += a[i]
         output_sche.append(b)
-    opr.set_output_sche(output_sche)
     return output_sche
 
 
