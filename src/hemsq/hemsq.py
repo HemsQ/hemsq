@@ -33,7 +33,7 @@ class HemsQ:
             'Fixstars', p=(4.0, 2.5, -0.1), ineq=(1.1, 1.6, 0.1))
         ## SA
         self._weight_store.register(
-            'SA', cost=(5, 0, -1), p=(5, 10, 1), ineq=(0.5, 1.0, 0.1))
+            'SA', cost=1, p=(4, 6, 1), ineq=(0.5, 65.0, 10.0))
 
     def set_params(self,
             unit=None,
@@ -180,7 +180,7 @@ class HemsQ:
                     Q_sa = poly_to_dict(Q)
                     # ソルバの実行
                     solver = neal.SimulatedAnnealingSampler()
-                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=10000) 
+                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=1000) 
                     samples = sampleset.samples() 
                     sample0 = dict(sorted(samples[0].items(),key=lambda x:x[0])[:-len(q2)])
                 #一つの項目が割り当てられる時間は一枠・opt_result取得
