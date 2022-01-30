@@ -2,6 +2,7 @@ import copy
 import math
 
 import numpy as np
+import neal
 from amplify import (
     BinarySymbolGenerator,
     Solver,
@@ -9,8 +10,10 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
+from .make_qubo_neal import poly_to_dict
 from .result import make_result
 from .sub import *
+from .weight import WeightStore
 
 class HemsQ:
     def __init__(self):
@@ -23,6 +26,14 @@ class HemsQ:
         self._client = None
         # 結果を格納するリスト
         self._results = []
+        # 重み
+        self._weight_store = WeightStore()
+        ## Fixstars
+        self._weight_store.register(
+            'Fixstars', p=(4.0, 2.5, -0.1), ineq=(1.1, 1.6, 0.1))
+        ## SA
+        self._weight_store.register(
+            'SA', cost=1, p=(4, 6, 1), ineq=(0.5, 65.0, 10.0))
 
     def set_params(self,
             unit=None,
@@ -96,16 +107,15 @@ class HemsQ:
         """
         self._client = client
 
-    def solve(self):
+    def solve(self, machine='Fixstars'):
         sp = self._sp
         sp.validate()
         
         #制約の重み
-        w_cost = 1.0 #コスト項
-        w_d=1.0 #需要と供給のバランス
-        w_a=1.0 #項目は一つ割り当てる 
-        w_io=1.0 #蓄電池の入出力は同時にしない
-        w_s=1.0 #太陽光の収支を合わせる
+        w_d = 1.0 # 需要と供給のバランス
+        w_a = 1.0 # 項目は一つ割り当てる 
+        w_io = 1.0 # 蓄電池の入出力は同時にしない
+        w_s = 1.0 # 太陽光の収支を合わせる
         normalize_rate = 0.01 #正規化何倍
         sche_times = math.ceil(sp.output_len / sp.resche_span) #何回組み直すか
         result_sche = [] #スケジュールを追加するリスト
@@ -128,9 +138,6 @@ class HemsQ:
         rated_capa = int(sp.actual_rated_capa / sp.unit)
         y_n = math.floor(math.log2(B_max-1))+1 #不等式のスラック変数の数
         for t in range(sche_times):
-            energy_lst = [] #パラメタ調整用(energy)
-            weight_lst = [] #パラメタ調整用(w_p,w_ineq1,w_ineq2）
-            all_sche = [] #パラメタ調整用(制約を破る・破らないに関わらず全てのスケジュールをここに入れる）
             if t != 0:
                 B_0 = int(my_round(result_sche[t-1][-1][-1])) #前のスケジュール作成の時の蓄電量
             resche_start = sp.start_time + sp.resche_span * t #リスケ開始時間
@@ -155,40 +162,45 @@ class HemsQ:
                              sp.conv_eff, C_ele_t, C_sun_t, sp.c_env, q1)
             p = mqa.penalty_term(sp.step, total, komoku, sp.cost_ratio,\
                             sp.conv_eff, D_t, Sun_t, w_a, w_io, w_d, w_s, q1)
-            ineq1 = mqa.ineq(q1, q2, sp.step, total, komoku,\
+            ineq = mqa.ineq(q1, q2, sp.step, total, komoku,\
                                     sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
-            for w_p in np.arange(4.0, 2.5, -0.1): #制約項の重み
-                for w_ineq2 in np.arange(1.1, 1.6, 0.1): #0<=B(t)の重み
-                    for w_ineq1 in np.arange(1.1, 1.6, 0.1): #B(t)<=B_max
-                        #多項式を重みをかけて足し合わす
-                        Q = c * w_cost + p * w_p + ineq1 * w_ineq1
-                        # ソルバの実行
-                        solver = Solver(self._client)
-                        result = solver.solve(Q)
-                        #結果の取得
-                        for solution in result:
-                            sample = solution.values
-                            break
-                        sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
-                        #一つの項目が割り当てられる時間は一枠・opt_result取得
-                        alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
-                        #組み直し時間までの結果
-                        schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0, sp.eta) 
-                        #破った制約を追加する
-                        broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
-                        #重みを追加
-                        weight_lst.append([w_p, w_ineq1, w_ineq2])        
-                        # print('[w_p,w_ineq1,w_ineq2]:', weight_lst[-1],'\n[broken constraints] :', broken_lst)
-                        if not broken_lst:
-                            result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])  
-                            # print('success! resche time :', resche_start)
-                            # print('[w_p,w_ineq1,w_ineq2]:',weight_lst[-1],'\n[broken constraints]:',broken_lst)
-                            break #満たす解があればfor文を抜ける
-                    if not broken_lst:
-                        break #満たす解があればfor文を抜ける
-                if not broken_lst:
-                    break #満たす解があればfor文を抜ける
-            if broken_lst:
+
+            def solve_internal(w, machine):
+                #多項式を重みをかけて足し合わす
+                Q = c * w.cost + p * w.p + ineq * w.ineq
+                if machine == 'Fixstars':
+                    # ソルバの実行
+                    solver = Solver(self._client)
+                    result = solver.solve(Q)
+                    #結果の取得
+                    for solution in result:
+                        sample = solution.values
+                        break
+                    sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
+                else:
+                    Q_sa = poly_to_dict(Q)
+                    # ソルバの実行
+                    solver = neal.SimulatedAnnealingSampler()
+                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=1000) 
+                    samples = sampleset.samples() 
+                    sample0 = dict(sorted(samples[0].items(),key=lambda x:x[0])[:-len(q2)])
+                #一つの項目が割り当てられる時間は一枠・opt_result取得
+                alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
+                #組み直し時間までの結果
+                schedule = makeSchedule(opt_result, sp.step, total, komoku, B_0, sp.eta) 
+                #破った制約を追加する
+                broken_lst = constraint(schedule, Sun_t, D_t, B_max, alloc_satisfied)
+                return schedule, broken_lst
+
+            was_solved = False
+            for w in self._weight_store.weights(machine):
+                schedule, broken_list = solve_internal(w, machine)
+                if not broken_list:
+                    result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])
+                    was_solved = True
+                    break
+
+            if not was_solved:
                 print('not found time:', resche_start) #満たす解がないのであれば終了する
                 break
         print('Done!')
