@@ -108,7 +108,7 @@ def newKomokuProduce(grp_lst):
 
 
 #使わない変数のindexが入ったリストを返す
-def disuse(komoku_grp, B_0, B_max, D, step, disuse_lst=[]):
+def disuse(komoku_grp, B_0, B_max, Df, step, disuse_lst=[]):
     #蓄電池の項目を用意する（最初は初期蓄電量分だけ使えるようにする）
     def B_komoku(B_0, B_max, D):
         B_lst = [0] * step
@@ -397,7 +397,7 @@ def plot_cost_use(result, figsize=(6, 4.8)):
     return fig, ax
 
 
-def make_output_sche(result_sche, sche_times):
+def make_output_sche(result_sche, sche_times, output_len):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
@@ -405,7 +405,7 @@ def make_output_sche(result_sche, sche_times):
         b = []
         for i in range(sche_times):
             b += a[i]
-        output_sche.append(b)
+        output_sche.append(b[:output_len])
     return output_sche
 
 
