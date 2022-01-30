@@ -57,39 +57,39 @@ class HemsQ:
         """
         パラメータを設定する.
         """
-        if unit:
+        if unit != None:
             self._sp.set_unit(unit)
-        if battery_capacity:
+        if battery_capacity != None:
             self._sp.set_actual_b_max(battery_capacity)
-        if initial_battery_amount:
+        if initial_battery_amount != None:
             self._sp.set_actual_b_0(initial_battery_amount)
-        if b_in:
+        if b_in != None:
             self._sp.set_b_in(b_in)
-        if b_out:
+        if b_out != None:
             self._sp.set_b_out(b_out)
-        if eta:
+        if eta != None:
             self._sp.set_eta(eta)
-        if conv_eff:
+        if conv_eff != None:
             self._sp.set_conv_eff(conv_eff)
-        if rated_output:
+        if rated_output != None:
             self._sp.set_actual_rated_capa(rated_output)
-        if cost_ratio:
+        if cost_ratio != None:
             self._sp.set_cost_ratio(cost_ratio)
-        if c_env:
+        if c_env != None:
             self._sp.set_c_env(c_env)
-        if sell_price:
+        if sell_price != None:
             self._sp.set_sell_price(sell_price)
-        if start_time:
+        if start_time != None:
             self._sp.set_start_time(start_time)
-        if step:
+        if step != None:
             self._sp.set_step(step)
-        if output_len:
+        if output_len != None:
             self._sp.set_output_len(output_len)
-        if reschedule_span:
+        if reschedule_span != None:
             self._sp.set_resche_span(reschedule_span)
-        if weather_list:
+        if weather_list != None:
             self._sp.set_tenki(weather_list)
-        if demand_list:
+        if demand_list != None:
             self._sp.set_demand(demand_list)
 
     def reset_params(self):
