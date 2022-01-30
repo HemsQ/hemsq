@@ -98,7 +98,6 @@ class HemsQ:
 
     def solve(self):
         sp = self._sp
-        sp.validate()
         
         #制約の重み
         w_cost = 1.0 #コスト項
@@ -107,7 +106,7 @@ class HemsQ:
         w_io=1.0 #蓄電池の入出力は同時にしない
         w_s=1.0 #太陽光の収支を合わせる
         normalize_rate = 0.01 #正規化何倍
-        sche_times = math.ceil(sp.output_len / sp.resche_span) #何回組み直すか
+        sche_times = int(sp.output_len / sp.resche_span) #何回組み直すか
         result_sche = [] #スケジュールを追加するリスト
         D_all = rounding(sp.demand, sp.unit)
         solar_by_weather = make_sun_by_weather(sp.solar_data, sp.tenki)
@@ -194,7 +193,7 @@ class HemsQ:
         print('Done!')
 
         # 結果の保存
-        output_sche = make_output_sche(result_sche, sche_times, sp.output_len)
+        output_sche = make_output_sche(result_sche, sche_times)
         unitdoubled_output_sche = unitDouble(output_sche, sp.unit)
         postprocessed_output_sche =\
             post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
