@@ -108,7 +108,7 @@ def newKomokuProduce(grp_lst):
 
 
 #使わない変数のindexが入ったリストを返す
-def disuse(komoku_grp, B_0, B_max, Df, step, disuse_lst=[]):
+def disuse(komoku_grp, B_0, B_max, D, step, disuse_lst=[]):
     #蓄電池の項目を用意する（最初は初期蓄電量分だけ使えるようにする）
     def B_komoku(B_0, B_max, D):
         B_lst = [0] * step
