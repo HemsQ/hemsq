@@ -397,7 +397,7 @@ def plot_cost_use(result, figsize=(6, 4.8)):
     return fig, ax
 
 
-def make_output_sche(result_sche, sche_times):
+def make_output_sche(result_sche, sche_times, output_len):
     #時間ごとに組み直したスケジュールを24時間にまとめる
     output_sche = []
     for k in range(7):
@@ -405,7 +405,7 @@ def make_output_sche(result_sche, sche_times):
         b = []
         for i in range(sche_times):
             b += a[i]
-        output_sche.append(b)
+        output_sche.append(b[:output_len])
     return output_sche
 
 

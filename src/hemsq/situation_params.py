@@ -49,6 +49,12 @@ class SituationParams:
         # 需要パターン
         self._demand = [207,177,147,157,157,167,228,330,381,391,351,311,341,341,311,310,320,331,372,542,549,509,438,318]
 
+    def validate(self):
+        if self._step < self._resche_span:
+            self._resche_span = self._step
+            print('Set `reschedule_span` to {} '
+                'since it must be `step` or less.'.format(self._resche_span))
+
     def set_unit(self, unit):
         self._unit = unit
     
