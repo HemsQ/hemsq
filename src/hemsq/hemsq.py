@@ -107,7 +107,7 @@ class HemsQ:
         """
         self._client = client
 
-    def solve(self, machine='Fixstars'):
+    def solve(self, machine='Fixstars', num_sweeps=1000):
         sp = self._sp
         sp.validate()
         
@@ -181,7 +181,7 @@ class HemsQ:
                     Q_sa = poly_to_dict(Q)
                     # ソルバの実行
                     solver = neal.SimulatedAnnealingSampler()
-                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=1000) 
+                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=num_sweeps)
                     samples = sampleset.samples() 
                     sample0 = dict(sorted(samples[0].items(),key=lambda x:x[0])[:-len(q2)])
                 #一つの項目が割り当てられる時間は一枠・opt_result取得
