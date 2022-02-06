@@ -202,7 +202,7 @@ class HemsQ:
 
             if not was_solved:
                 print('not found time:', resche_start) #満たす解がないのであれば終了する
-                break
+                return False
         print('Done!')
 
         # 結果の保存
@@ -225,6 +225,7 @@ class HemsQ:
             list(map(lambda x: my_round(x), postprocessed_output_sche[6])),
         )
         self._results.append(result)
+        return result
 
     def cost_dict(self, result=None):
         if result == None:
