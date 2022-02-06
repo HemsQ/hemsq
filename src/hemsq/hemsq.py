@@ -2,7 +2,6 @@ import copy
 import math
 
 import numpy as np
-import neal
 from amplify import (
     BinarySymbolGenerator,
     Solver,
@@ -10,7 +9,6 @@ from amplify import (
 
 from .situation_params import SituationParams
 from .amp import make_qubo_amp as mqa
-from .make_qubo_neal import poly_to_dict
 from .result import make_result
 from .sub import *
 from .weight import WeightStore
@@ -31,9 +29,6 @@ class HemsQ:
         ## Fixstars
         self._weight_store.register(
             'Fixstars', p=(4.0, 2.5, -0.1), ineq=(1.1, 1.6, 0.1))
-        ## SA
-        self._weight_store.register(
-            'SA', cost=1, p=(4, 6, 1), ineq=(0.5, 65.0, 10.0))
 
     def set_params(self,
             unit=None,
@@ -107,7 +102,7 @@ class HemsQ:
         """
         self._client = client
 
-    def solve(self, machine='Fixstars'):
+    def solve(self):
         sp = self._sp
         sp.validate()
         
@@ -165,25 +160,17 @@ class HemsQ:
             ineq = mqa.ineq(q1, q2, sp.step, total, komoku,\
                                     sp.eta, sp.b_in, sp.b_out, B_max, B_0, y_n)
 
-            def solve_internal(w, machine):
+            def solve_internal(w):
                 #多項式を重みをかけて足し合わす
                 Q = c * w.cost + p * w.p + ineq * w.ineq
-                if machine == 'Fixstars':
-                    # ソルバの実行
-                    solver = Solver(self._client)
-                    result = solver.solve(Q)
-                    #結果の取得
-                    for solution in result:
-                        sample = solution.values
-                        break
-                    sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
-                else:
-                    Q_sa = poly_to_dict(Q)
-                    # ソルバの実行
-                    solver = neal.SimulatedAnnealingSampler()
-                    sampleset = solver.sample_qubo(Q_sa, num_reads=10, num_sweeps=1000) 
-                    samples = sampleset.samples() 
-                    sample0 = dict(sorted(samples[0].items(),key=lambda x:x[0])[:-len(q2)])
+                # ソルバの実行
+                solver = Solver(self._client)
+                result = solver.solve(Q)
+                #結果の取得
+                for solution in result:
+                    sample = solution.values
+                    break
+                sample0 = dict(sorted(sample.items(), key=lambda x:x[0])[:-len(q2)])
                 #一つの項目が割り当てられる時間は一枠・opt_result取得
                 alloc_satisfied, opt_result = check_alloc(sp.step, sample0, {})
                 #組み直し時間までの結果
@@ -193,8 +180,8 @@ class HemsQ:
                 return schedule, broken_lst
 
             was_solved = False
-            for w in self._weight_store.weights(machine):
-                schedule, broken_list = solve_internal(w, machine)
+            for w in self._weight_store.weights('Fixstars'):
+                schedule, broken_list = solve_internal(w)
                 if not broken_list:
                     result_sche.append([schedule[j][0: sp.resche_span] for j in range(7)])
                     was_solved = True
@@ -202,7 +189,7 @@ class HemsQ:
 
             if not was_solved:
                 print('not found time:', resche_start) #満たす解がないのであれば終了する
-                break
+                return False
         print('Done!')
 
         # 結果の保存
@@ -225,6 +212,7 @@ class HemsQ:
             list(map(lambda x: my_round(x), postprocessed_output_sche[6])),
         )
         self._results.append(result)
+        return result
 
     def cost_dict(self, result=None):
         if result == None:

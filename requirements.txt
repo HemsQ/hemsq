@@ -1,5 +1,4 @@
 amplify==0.6.5
 numpy>=1.6
-dwave-neal>=0.5.7
 matplotlib>=3.0
 pandas>=1.0.5
