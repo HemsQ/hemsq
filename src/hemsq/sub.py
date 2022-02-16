@@ -477,4 +477,6 @@ def post_process(schedule, Sun, D, output_len):
     print(id(demand_processed))
     sun_processed = align_sun(demand_processed, Sun, output_len)
     print(id(sun_processed))
-    return sun_processed
+    demand_processed_again = align_demand(sun_processed, D, output_len)
+    print(id(demand_processed_again))
+    return demand_processed_again
