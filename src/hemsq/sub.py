@@ -473,10 +473,8 @@ def align_demand(schedule, D, output_len):
 def post_process(schedule, Sun, D, output_len):
     # TODO: Fix this process.
     print(id(schedule))
-    schedule = align_demand(schedule, D, output_len)
-    print(id(schedule))
-    schedule = align_sun(schedule, Sun, output_len)
-    print(id(schedule))
-    schedule = align_demand(schedule, D, output_len)
-    print(id(schedule))
-    return schedule
+    demand_processed = align_demand(schedule, D, output_len)
+    print(id(demand_processed))
+    sun_processed = align_sun(demand_processed, Sun, output_len)
+    print(id(sun_processed))
+    return sun_processed
