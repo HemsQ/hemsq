@@ -471,6 +471,8 @@ def align_demand(schedule, D, output_len):
 
 #後処理をまとめて行う
 def post_process(schedule, Sun, D, output_len):
-    schedule = align_sun(schedule, Sun, output_len)
-    schedule = align_demand(schedule, D, output_len)
-    return schedule
+    # TODO: Fix this process.
+    demand_processed = align_demand(schedule, D, output_len)
+    sun_processed = align_sun(demand_processed, Sun, output_len)
+    demand_processed_again = align_demand(sun_processed, D, output_len)
+    return demand_processed_again
