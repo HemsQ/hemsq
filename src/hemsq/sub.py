@@ -472,11 +472,7 @@ def align_demand(schedule, D, output_len):
 #後処理をまとめて行う
 def post_process(schedule, Sun, D, output_len):
     # TODO: Fix this process.
-    print(id(schedule))
     demand_processed = align_demand(schedule, D, output_len)
-    print(id(demand_processed))
     sun_processed = align_sun(demand_processed, Sun, output_len)
-    print(id(sun_processed))
     demand_processed_again = align_demand(sun_processed, D, output_len)
-    print(id(demand_processed_again))
     return demand_processed_again
