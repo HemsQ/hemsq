@@ -195,7 +195,8 @@ class HemsQ:
         output_sche = make_output_sche(result_sche, sche_times)
         unitdoubled_output_sche = unitDouble(output_sche, sp.unit)
         postprocessed_output_sche =\
-            post_process(unitdoubled_output_sche, rotated_sun, rotated_demand, sp.output_len)
+            post_process(unitdoubled_output_sche, rotated_sun, rotated_demand,
+                sp.output_len, sp.actual_b_max)
         result = make_result(
             sp,
             rotated_demand,
