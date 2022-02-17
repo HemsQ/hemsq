@@ -439,33 +439,6 @@ def align_sun(schedule, Sun, output_len):
     schedule = (array.T).tolist()
     return schedule
 
-def align_sun_v2(schedule, Sun, output_len):
-    # schedule はすでに unit を全要素にかけたもの
-    array = np.array(schedule).T
-    for t in range(output_len):
-        # 発電量 - 出力 
-        dif = Sun[t] - sum(array[t][:3])
-        # 発電量 > 出力
-        if dif > 0:
-            array[t][2] += dif # 発電量が余っているなら売る
-        # そうでなければ (発電量 < 出力、つまり供給不足)
-        # まず足りない dif を「太陽光を売る」から確保
-        if dif < 0 and array[t][2] > 0:
-            val = min(array[t][2], -dif)
-            array[t][2] -= val
-            dif += val
-        # それでも足りなければ dif を「太陽光を貯める」から確保
-        if dif < 0 and array[t][1] > 0:
-            val = min(array[t][1], -dif)
-            array[t][1] -= val
-            array[t][6] -= val  # 蓄電池容量から減らすことも忘れずに
-            dif += val
-        # それでも足りなければ dif を「商用電源から買う」
-        if dif < 0:
-            array[t][4] += dif
-    schedule = (array.T).tolist()
-    return schedule
-
 # 需要の収支を揃える後処理
 def align_demand(schedule, D, output_len, b_max):
     # schedule はすでに unit を全要素にかけたもの
@@ -507,6 +480,3 @@ def post_process(schedule, Sun, D, output_len, b_max):
     sun_processed = align_sun(demand_processed, Sun, output_len)
     demand_processed_again = align_demand(sun_processed, D, output_len, b_max)
     return demand_processed_again
-    # demand_processed = align_demand(schedule, D, output_len, b_max)
-    # sun_processed = align_sun_v2(demand_processed, Sun, output_len)
-    # return sun_processed
