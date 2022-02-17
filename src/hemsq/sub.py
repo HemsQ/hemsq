@@ -413,12 +413,12 @@ def align_sun(schedule, Sun, output_len):
     # schedule はすでに unit を全要素にかけたもの
     array = np.array(schedule).T
     for t in range(output_len):
-        # 出力-入力
+        # 発電量 - 出力 
         dif = Sun[t] - sum(array[t][:3])
-        # 出力＞発電量
+        # 発電量 > 出力
         if dif > 0:
-            array[t][2] += dif #発電量が余っているなら売る
-        # そうでなければ
+            array[t][2] += dif # 発電量が余っているなら売る
+        # そうでなければ (発電量 < 出力、つまり供給不足)
         # まず足りない dif を「太陽光を売る」から確保
         if dif < 0 and array[t][2] > 0:
             val = min(array[t][2], -dif)
@@ -503,10 +503,10 @@ def align_demand(schedule, D, output_len, b_max):
 #後処理をまとめて行う
 def post_process(schedule, Sun, D, output_len, b_max):
     # TODO: Fix this process.
-    # demand_processed = align_demand(schedule, D, output_len)
-    # sun_processed = align_sun(demand_processed, Sun, output_len)
-    # demand_processed_again = align_demand(sun_processed, D, output_len)
-    # return demand_processed_again
     demand_processed = align_demand(schedule, D, output_len, b_max)
-    sun_processed = align_sun_v2(demand_processed, Sun, output_len)
-    return sun_processed
+    sun_processed = align_sun(demand_processed, Sun, output_len)
+    demand_processed_again = align_demand(sun_processed, D, output_len, b_max)
+    return demand_processed_again
+    # demand_processed = align_demand(schedule, D, output_len, b_max)
+    # sun_processed = align_sun_v2(demand_processed, Sun, output_len)
+    # return sun_processed
