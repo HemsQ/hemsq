@@ -467,7 +467,7 @@ def align_sun_v2(schedule, Sun, output_len):
     return schedule
 
 # 需要の収支を揃える後処理
-def align_demand(schedule, D, output_len):
+def align_demand(schedule, D, output_len, b_max):
     # schedule はすでに unit を全要素にかけたもの
     array = np.array(schedule).T
     for t in range(output_len):
@@ -501,7 +501,7 @@ def align_demand(schedule, D, output_len):
     return schedule
 
 #後処理をまとめて行う
-def post_process(schedule, Sun, D, output_len):
+def post_process(schedule, Sun, D, output_len, b_max):
     # TODO: Fix this process.
     # demand_processed = align_demand(schedule, D, output_len)
     # sun_processed = align_sun(demand_processed, Sun, output_len)
