@@ -507,6 +507,6 @@ def post_process(schedule, Sun, D, output_len, b_max):
     # sun_processed = align_sun(demand_processed, Sun, output_len)
     # demand_processed_again = align_demand(sun_processed, D, output_len)
     # return demand_processed_again
-    demand_processed = align_demand(schedule, D, output_len)
+    demand_processed = align_demand(schedule, D, output_len, b_max)
     sun_processed = align_sun_v2(demand_processed, Sun, output_len)
     return sun_processed
