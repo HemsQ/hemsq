@@ -9,13 +9,14 @@ HEMS (Home Energy Management System) は家庭のエネルギー使用を効率�
 `hemsq` はこの2番目のスケジューリングを**アニーリングマシン**という
 組合せ最適化問題を得意とするマシンを用いて行います。
 
-# 必要条件
-- python
-- numpy
-- amplify
-- matplotlib
+## 必要条件
+- python >= 3.7
+- numpy >= 1.6
+- amplify >= 0.6.5
+- matplotlib >= 3.0
+- pandas >= 1.1
 
-# インストール
+## インストール
 
 ```
 pip install git+https://github.com/CanonMukai/hemsq-prototype.git
