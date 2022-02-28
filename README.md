@@ -53,3 +53,26 @@ result = hq.solve()
 if result:
     hq.show_all()
 ```
+
+## 構成
+
+|クラス名|パッケージ名|概要|
+|---|---|---|
+|HemsQ|hemsq.py|天気や需要パターン、その他あらゆるパラメータが表す個々の状況に合わせてHEMSシステムの最適化を行い、結果を可視化する。|
+
+### HemsQ クラス
+
+**・メソッド一覧**
+|メソッド名|機能|
+|---|---|
+|set_params|天気や需要など状況を表すパラメータを細かく設定する。|
+|params|プロパティ。現在設定されているパラメータを返す。|
+|reset_params|パラメータをデフォルト値に戻す。|
+|set_client|`Amplify` クライアントを設定する。|
+|show_all|show_cost, show_all_schedule, show_demand, show_solar, show_cost_and_charge, show_cost_and_useを全て実行する。|
+|show_cost|得られたスケジュールによってかかるコスト(または売上)、CO2排出量を表示する。|
+|show_all_schedule|スケジュール表を表示する。|
+|show_demand|需要と供給のグラフを表示する。|
+|show_solar|太陽光発電関係のグラフを表示する。|
+|show_cost_and_charge|商用電源の価格と購入の推移を表すグラフを表示する。|
+|show_cost_and_use|商用電源の価格と使用の推移を表すグラフを表示する。|
